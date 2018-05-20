@@ -1,25 +1,23 @@
 (ns cljs-space-rocks.core
-    (:require [reagent.core :as reagent :refer [atom]]))
+    (:require
+      [reagent.core :as reagent :refer [atom]]
+      [re-frame.core :as rf]
+      [cljs-space-rocks.model :as mod]
+      [cljs-space-rocks.reg :as reg]
+      [cljs-space-rocks.view :as view]
+      [cljs-space-rocks.input :as input]))
 
 (enable-console-print!)
 
-(println "This text is printed from src/cljs-space-rocks/core.cljs. Go ahead and edit it and see reloading in action.")
+(defn main-loop
+  "dispatch tick every animation frame"
+  [dt]
+  (rf/dispatch [:tick dt]))
 
-;; define your app data so that it doesn't get over-written on reload
-
-(defonce app-state (atom {:text "Hello world!"}))
-
-
-(defn hello-world []
-  [:div
-   [:h1 (:text @app-state)]
-   [:h3 "Edit this and watch it change!"]])
-
-(reagent/render-component [hello-world]
-                          (. js/document (getElementById "app")))
-
-(defn on-js-reload [])
-  ;; optionally touch your app-state to force rerendering depending on
-  ;; your application
-  ;; (swap! app-state update-in [:__figwheel_counter] inc)
+(defonce begin!
+  (do
+  ; (rf/dispatch-sync [:init])
+    (view/render-root)
+    (input/add-top-listeners)))
+    ; (raf-dt main-loop)))
 

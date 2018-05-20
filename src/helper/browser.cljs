@@ -15,6 +15,10 @@
   []
   (get-element "app"))
 
+(defn add-listener
+  "add an event listener to an element"
+  [ele event handler]
+  (.addEventListener ele event handler))
 
 ;; request animation frame
 
