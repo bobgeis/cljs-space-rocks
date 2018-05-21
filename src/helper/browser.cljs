@@ -9,12 +9,6 @@
   [id]
   (js/document.getElementById id))
 
-(defn get-app-element
-  "get the app element
-  (default root node for figwheel etc"
-  []
-  (get-element "app"))
-
 (defn add-listener
   "add an event listener to an element"
   [ele event handler]

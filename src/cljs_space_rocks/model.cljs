@@ -9,8 +9,7 @@
 
 (defn init-app-state
   "initialize the app state"
-  []
+  [db ls-data]
   (clog "initializing app state")
-  ; (rf/dispatch-sync [:init])
-  "todo")
+  {:db {}})
 

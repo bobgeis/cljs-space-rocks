@@ -15,10 +15,7 @@
   []
   (let [test "put top level subs here"]
     [:svg
-      {:style {:position "fixed"
-               :top 0
-               :left 0
-               :width 800
+      {:style {:width 800
                :height 650
                :background "url(img/stars.jpg) no-repeat center"
                :background-size "cover"}}]))
@@ -31,7 +28,7 @@
 
 (defn render-root
   "render the root of the view"
-  []
+  [id]
   (r/render
     [main-view]
-    (hb/get-app-element)))
+    (hb/get-element id)))
