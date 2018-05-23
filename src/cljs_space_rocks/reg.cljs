@@ -50,3 +50,8 @@
     {}))
 
 ;; reg sub
+
+
+(rf/reg-sub :player
+  (fn [db _]
+    (get-in db [:game :player])))

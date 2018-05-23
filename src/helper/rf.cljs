@@ -3,15 +3,14 @@
   (:require
     [cljs.pprint :as pp :refer [pprint]]
     [re-frame.core :as rf]
-    [re-frame.db :as rfdb]))
+    [re-frame.db :as rfdb]
+    [helper.log :refer [clog jlog]]))
 
 
 (defn spy
   "pprint app db"
   []
-  (-> @rfdb/app-db
-    pprint
-    identity))
+  (clog @rfdb/app-db))
 
 (defn <sub
   "another way to subscribe, for use in views
