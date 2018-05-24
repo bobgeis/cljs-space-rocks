@@ -13,7 +13,9 @@
                  [org.clojure/core.async  "0.4.474"]
                  [reagent "0.8.1"]
                  [re-frame "0.10.5"]
-                 [com.rpl/specter "1.1.1"]]
+                 [com.rpl/specter "1.1.1"]
+                 [com.cognitect/transit-cljs "0.8.256"]
+                 [binaryage/devtools "0.9.10"]]
 
   :plugins [[lein-figwheel "0.5.16"]
             [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]]
@@ -41,7 +43,12 @@
                            :source-map-timestamp true
                            ;; To console.log CLJS data-structures make sure you enable devtools in Chrome
                            ;; https://github.com/binaryage/cljs-devtools
-                           :preloads [devtools.preload]}}
+                           :preloads [devtools.preload helper.log]
+                           :external-config
+                           {:devtools/config
+                            {:features-to-install [:formatters :hints]
+                             :fn-symbol "f"
+                             :print-config-overrides true}}}}
                ;; This next build is a compressed minified build for
                ;; production. You can build this with:
                ;; lein cljsbuild once min
@@ -102,7 +109,8 @@
                    :source-paths ["src" "dev"]
                    ;; for CIDER
                    ;; :plugins [[cider/cider-nrepl "0.12.0"]]
-                   :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
+                   :repl-options
+                   {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
                    ;; need to add the compliled assets to the :clean-targets
-                   :clean-targets ^{:protect false} ["resources/public/js/compiled"
-                                                     :target-path]}})
+                   :clean-targets ^{:protect false}
+                   ["resources/public/js/compiled" :target-path]}})

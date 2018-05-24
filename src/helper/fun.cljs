@@ -1,108 +1,39 @@
 (ns helper.fun
-  "helper functions")
-
-
-;; circle constants
-
-(def pi
-  "pi"
-  Math/PI)
-
-(def two-pi
-  "two pi"
-  (* pi 2))
-
-(def half-pi
-  "one half pi"
-  (/ pi 2))
-
-(def tau
-  "tau is two pi"
-  two-pi)
-
-(def half-tau
-  "one half tau (pi)"
-  pi)
-
-(def quarter-tau
-  "one quarter of tau (half-pi"
-  half-pi)
-
-;; geometry functions
-
-;; angle conversions
-(defn radians
-  "convert circles to radians"
-  [a]
-  (* tau a))
-
-(defn unrad
-  "convert radians to circles"
-  [a]
-  (/ a tau))
-
-(defn degrees
-  "convert circles to degrees"
-  [a]
-  (* 360 a))
-
-(defn undegree
-  "convert degrees to circles"
-  [a]
-  (/ a 360))
-
-(defn deg-to-rad
-  "convert degrees to radians"
-  [a]
-  (radians (undegree a)))
-
-(defn rad-to-deg
-  "convert radians to degrees"
-  [a]
-  (degrees (unrad a)))
-
-;; magnitude (mag) and get angle (gang) of [x y] vectors
-(defn mag
-  "get the magnitude of a vector [x y]"
-  [x y]
-  (Math/hypot x y))
-
-(defn gang
-  "get the angle of a vector [x y]"
-  [x y]
-  (Math/atan2 y x))
-
-;; cartesian to polar conversion
-(defn ra-to-xy
-  "convert polar coordinates to cartesian"
-  [r a]
-  [(* r (Math/cos a)) (* r (Math/sin a))])
-
-(defn xy-to-ra
-  "convert cartesian coordinates to polar"
-  [x y]
-  [(mag x y) (gang x y)])
-
-;; translation
-(defn trans-xy
-  "translate an xy point by dx dy yielding [x' y']"
-  [x y dx dy]
-  [(+ x dx) (+ y dy)])
-
-(defn trans-ra
-  "translate an xy point by a distance (r) in a direction (a radians)
-    yielding [x' y']"
-  [x y r a]
-  (let [[dx dy] (ra-to-xy r a)]
-    (trans-xy x y dx dy)))
-
+  "basic helper functions"
+  (:require
+    [clojure.string :as string]))
 
 ;; misc utility
+
+(defn sjoin
+  "string join on space"
+  [strings]
+  (string/join " " strings))
 
 (defn square
   "square it"
   [x]
   (* x x))
+
+(defn wrap
+  "wrap a number once if it is outside 0->max"
+  [s max]
+  (cond
+    (> 0 s) (+ s max)
+    (< max s) (- s max)
+    :else s))
+
+(defn clamp
+  "clamp a number if it is outside 0->max"
+  [s maximum]
+  (max 0 (min s maximum)))
+
+(defn inside?
+  "true if any of position s with radius r is within 0->max"
+  ([s r max]
+   (or (> (- r) s) (< (+ max r) s)))
+  ([s max]
+   (inside? s max 0)))
 
 (defn mmap
   "map over just the values of a map, producing a new map
@@ -130,3 +61,52 @@
   many args to filtermap over one or more colls"
   [f & colls]
   (filter identity (apply map f colls)))
+
+(defn map->vec
+  "take a map and keys and turn it into a vec with the values in the order given
+  if the coll is not a map, then it is passed through unchanged"
+  [coll keys]
+  (if (map? coll)
+     (reduce #(conj %1 (get coll %2)) [] keys)
+     coll))
+
+(defn vec->map
+  "takes a vector or sequence and keys, and turns it into a map
+  with the first value & first key assoced, etc"
+  [coll keys]
+  (if (map? coll) coll
+    (zipmap keys coll)))
+
+(defn assoc-fn
+  "take a map/vec, fun, and values, and assoc using (fun val) to get the keys"
+  ([coll fun val]
+   (assoc coll (fun val) val))
+  ([coll fun val & vals]
+   (let [ret (assoc-fn coll fun val)]
+     (if vals
+       (recur ret fun (first vals) (next vals))
+       ret))))
+
+(defn assoc-fn-seq
+  "List assoc-fn but takes a seq of vals.
+  If vals contains nils, will stop at first nil"
+  [coll fun vals]
+  (if (nil? (first vals)) coll
+    (recur (assoc-fn coll fun (first vals)) fun (rest vals))))
+
+(defn dissoc-fn
+  "take a map/vec, fun, and values, and dissoc using (fun val) to get keys"
+  ([coll fun val]
+   (dissoc coll (fun val) val))
+  ([coll fun val & vals]
+   (let [ret (dissoc-fn coll fun val)]
+    (if vals
+      (recur ret fun (first vals) (next vals))
+      ret))))
+
+(defn dissoc-fn-seq
+  "Like dissoc-fn but takes a seq of vals.
+  If vals contains nils, will stop at first nil"
+  [coll fun vals]
+  (if (nil? (first vals)) coll
+    (recur (dissoc-fn coll fun (first vals)) fun (rest vals))))

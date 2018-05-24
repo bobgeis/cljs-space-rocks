@@ -1,7 +1,8 @@
 (ns helper.browser
   "some browser functions"
   (:require
-    [helper.log :refer [clog]]))
+   [helper.log :refer [clog]]
+   [helper.transit :as ht]))
 
 
 (defn get-element
@@ -39,11 +40,11 @@
   "wrap the raf callback"
   [callback]
   (letfn
-    [(raf-loop [timestamp]
-        (let [dt (- timestamp @raf-clock)]
-          (reset! raf-clock timestamp)
-          (callback dt)
-          (reset! raf-token (raf raf-loop))))]
+   [(raf-loop [timestamp]
+      (let [dt (- timestamp @raf-clock)]
+        (reset! raf-clock timestamp)
+        (callback dt)
+        (reset! raf-token (raf raf-loop))))]
     raf-loop))
 
 (defn raf-dt
@@ -63,14 +64,14 @@
 (defn set-local-storage
   "set something in the local storage"
   [name value]
-  (.setItem js/localStorage name (.stringify js/JSON (clj->js value))))
+  (.setItem js/localStorage name (ht/write value)))
 
 (defn get-local-storage
   "get something from local storage"
   ([name]
-   (js->clj (.parse js/JSON (.getItem js/localStorage name)) :keywordize-keys true))
-  ([name default]
-   (or (get-local-storage name) default)))
+   (ht/read (.getItem js/localStorage name)))
+  ([name dflt]
+   (or (get-local-storage name) dflt)))
 
 (defn del-local-storage
   "remove something from local storage"
