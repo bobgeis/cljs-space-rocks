@@ -48,7 +48,9 @@
             :background-color (rgb 0 0 50 0.5)
             :border-radius "10px"
             :text-align "center"}}
-   [:p [:strong "Lookout! Space Rocks!"]]
+   [:p [:strong [:a {:href "https://github.com/bobgeis/cljs-space-rocks"
+                     :style {:color "#FFFFFF"}}
+                 "Lookout! Space Rocks!"]]]
    [:p "Some hooligans are dumping space rocks."]
    [:p "Luckily, you're here :)"]
    [:p "Bust the rocks so ships can travel safely"]

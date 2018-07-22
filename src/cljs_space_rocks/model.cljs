@@ -355,7 +355,7 @@
 (def splash-down-axns
   {"Enter" #(change-mode-cofx % :play)
    "Escape" init-state-cofx
-   "#" wipe-hiscores-cofx
+   "u" wipe-hiscores-cofx
    "l" clog-cofx})
 
 (def splash-up-axns
@@ -377,7 +377,7 @@
    "p" #(change-mode-cofx % :pause)
    "Enter" #(change-mode-cofx % :pause)
    "z" #(maybe-set-omega-trigger-cofx % misc/omega-13-countdown)
-   "#" wipe-hiscores-cofx
+   "u" wipe-hiscores-cofx
    "l" clog-cofx})
 
 (def play-up-axns
@@ -409,7 +409,7 @@
    "Enter" #(change-mode-cofx % :play)
    "z" #(maybe-set-omega-trigger-cofx % misc/omega-13-countdown)
    "Escape" init-state-cofx
-   "#" wipe-hiscores-cofx
+   "u" wipe-hiscores-cofx
    "l" clog-cofx})
 
 (def pause-up-axns
@@ -431,7 +431,7 @@
    "z" #(maybe-set-omega-trigger-cofx % misc/omega-13-countdown)
    "Enter" init-state-cofx
    "Escape" init-state-cofx
-   "#" wipe-hiscores-cofx
+   "u" wipe-hiscores-cofx
    "l" clog-cofx})
 
 (def gameover-up-axns
@@ -443,7 +443,7 @@
    "z" #(maybe-set-omega-trigger-cofx % misc/omega-13-countdown)
    "Enter" init-state-cofx
    "Escape" init-state-cofx
-   "#" wipe-hiscores-cofx
+   "u" wipe-hiscores-cofx
    "l" clog-cofx})
 
 (def go-pause-up-axns
