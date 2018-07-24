@@ -13,7 +13,7 @@
 
 (def player-radius
   "radius of the player ship (should be 10)"
-  10)
+  100)
 
 (def player-turn-speed
   "turn speed in degrees per tick"
@@ -21,11 +21,11 @@
 
 (def player-thrust
   "player forward acceleration in px per tick per tick"
-  0.1)
+  1)
 
 (def player-retro
   "player reverse acceleration in px per tick per tick"
-  -0.02)
+  -0.2)
 
 (def player-drag
   "drag on the player ship"
@@ -58,7 +58,7 @@
 (defn initial-player
   "initial player data"
   []
-  {:x misc/center-x :y misc/center-y ;; starting position
+  {:x misc/xc-box :y misc/yc-box ;; starting position
    :vx 0 :vy 0 ;; velocity (px/tick)
    :a misc/north :va 0 ;; angle (deg) and angular velocity (deg/tick)
    :acc 0 ;; acceleration (forward px/tick/tick)
@@ -140,7 +140,7 @@
   [:path
    {:fill fill
     :stroke stroke
-    :stroke-width 1
+    :stroke-width 10
     :d (sjoin
         ["M" 0 r
          "C" (* 1.5 r) r (* 1.5 r) (- r) 0 (- r)
@@ -156,7 +156,7 @@
   [r stroke]
   [:path
    {:stroke stroke
-    :stroke-width 2
+    :stroke-width 20
     :d (sjoin
         ["M" (* 0.5 r) (* -0.25 r)
          "L" (* 0.5 r) (* 0.25 r)
@@ -173,7 +173,7 @@
   [:ellipse
    {:fill glow
     :stroke dim
-    :stroke-width 1
+    :stroke-width 10
     :cx (/ r 12)
     :cy (* r 0.5 sign)
     :rx (* 0.5 r)
@@ -199,6 +199,6 @@
      (svg-body player-radius color color)
      (player-one-engine-path r 1 color color)
      (player-one-engine-path r -1 color color)
-     [:circle {:stroke color :stroke-width 2 :fill "none"
+     [:circle {:stroke color :stroke-width 20 :fill "none"
                :cx 0 :cy 0 :r (* 10 player-radius ratio)}]]))
 

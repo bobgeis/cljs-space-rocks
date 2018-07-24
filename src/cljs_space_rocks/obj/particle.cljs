@@ -3,7 +3,7 @@
   (:require
    [com.rpl.specter :as sp]
    [helper.log :refer [clog]]
-   [helper.fun :as fun]
+   [helper.fun :as fun :refer [floor]]
    [helper.color :refer [hsl]]
    [helper.geom :as geom :refer [ra->xy]]
    [cljs-space-rocks.id :as id]
@@ -15,10 +15,10 @@
 
 (def max-life 50)
 
-(def min-speed 2)
+(def min-speed 20)
 
 (def max-speed
-  10)
+  100)
 
 (def svg-length
   "length of the svg in units of v"
@@ -78,7 +78,7 @@
   [{:keys [x y vx vy life color] :as obj}]
   (let [ratio life]
     [:line
-     {:x1 (- x vx) :y1 (- y vy)
-      :x2 (+ x (* svg-length vx)) :y2 (+ y (* svg-length vy))
+     {:x1 (floor (- x vx)) :y1 (floor (- y vy))
+      :x2 (floor (+ x (* svg-length vx))) :y2 (floor (+ y (* svg-length vy)))
       :stroke (get-color (/ life max-life))
-      :stroke-width 2}]))
+      :stroke-width 20}]))

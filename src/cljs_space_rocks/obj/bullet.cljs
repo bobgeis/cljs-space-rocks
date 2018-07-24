@@ -4,6 +4,7 @@
    [com.rpl.specter :as sp]
    [helper.geom :refer [ra->xy deg->rad]]
    [helper.log :refer [clog]]
+   [helper.fun :refer [floor]]
    [cljs-space-rocks.id :as id]
    [cljs-space-rocks.misc :as misc]))
 
@@ -11,7 +12,7 @@
 
 (def speed
   "bullet muzzle velocity"
-  10)
+  100)
 
 (def lifetime
   "lifetime (ticks) of a bullet"
@@ -19,7 +20,7 @@
 
 (def radius
   "radius of a bullet"
-  1)
+  10)
 
 (def svg-length
   "length of the bullet svg-line in units of velocity"
@@ -51,6 +52,6 @@
   "make a line svg for the given bullet"
   [{:keys [x y vx vy a life] :as obj}]
   [:line
-   {:x1 (- x vx) :y1 (- y vy)
-    :x2 (+ x (* svg-length vx)) :y2 (+ y (* svg-length vy))
-    :stroke "rgb(0, 255, 255)"}])
+   {:x1 (floor (- x vx)) :y1 (floor (- y vy))
+    :x2 (floor (+ x (* svg-length vx))) :y2 (floor (+ y (* svg-length vy)))
+    :stroke "#00ffff" :stroke-width 10}])

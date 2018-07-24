@@ -10,7 +10,7 @@ This is a learning project made while learning clojurescript.  It's an asteroids
 Keyboard:
 * Arrow keys or WASD to move the player ship.
 * Space or Shift to fire the disintigrator.
-* Z activated the Omega 13.  Once fully charged, the player can go back in time 13 seconds "Enough time to undo a single mistake."  Note that if it's fully charged when the player ship is destroyed, it remains available after game over.
+* Z activates the Omega 13.  Once fully charged, the player can go back in time 13 seconds; "Enough time to undo a single mistake."  Note that if it's fully charged and the player ship is destroyed, it remains available.
 * P pauses and unpauses the game.
 * Enter starts the game or restarts the game.
 * Escape, while paused, goes back to the start screen.

@@ -13,7 +13,7 @@
   [:p
    {:style {:color (if full? "#00FF00" "#FF0000")
             :z-index 2 :position "absolute" :font-size "large"
-            :top (- misc/game-height 50) :left misc/center-x
+            :top (- misc/yt-svg 50) :left misc/xc-svg
             :transform "translate(-50%,0)"}}
    (str "\u03A9-" count)])
 
@@ -24,7 +24,7 @@
   []
   [:div
    {:style {:z-index 2 :position "absolute"
-            :top 350 :left misc/center-x
+            :top 350 :left misc/xc-svg
             :transform "translate(-50%,0)"
             :font-size "small" :padding 5
             :background-color (rgb 0 0 50 0.5)
@@ -42,7 +42,7 @@
   []
   [:div
    {:style {:z-index 2 :position "absolute"
-            :top 130 :left misc/center-x
+            :top 130 :left misc/xc-svg
             :transform "translate(-50%,0)"
             :font-size "small" :padding 5
             :background-color (rgb 0 0 50 0.5)
@@ -61,7 +61,7 @@
   []
   [:div
    {:style {:z-index 2 :position "absolute"
-            :top 100 :left misc/center-x
+            :top 100 :left misc/xc-svg
             :transform "translate(-50%,0)"
             :font-size "small" :padding 5
             :background-color (rgb 0 0 50 0.5)
@@ -80,7 +80,7 @@
   []
   [:div
    {:style {:z-index 2 :position "absolute"
-            :top 100 :left misc/center-x
+            :top 100 :left misc/xc-svg
             :transform "translate(-50%,0)"
             :font-size "small" :padding 5
             :background-color (rgb 0 0 50 0.5)
@@ -154,7 +154,7 @@
   [{:keys [gem pod ship rock]}]
   [:div
    {:style {:z-index 2 :position "absolute"
-            :top (- misc/game-height 80) :left 10
+            :top (- misc/yt-svg 80) :left 10
             ; :transform "translate(-50%,0)"
             :font-size "10px" :padding 5
             :background-color (rgb 0 0 50 0.5)
@@ -190,7 +190,7 @@
   [{:keys [gem pod]}]
   [:div
    {:style {:z-index 2 :position "absolute"
-            :top (- misc/game-height 130) :left 10
+            :top (- misc/yt-svg 130) :left 10
                        ; :transform "translate(-50%,0)"
             :font-size "10px" :padding 5
             :background-color (rgb 0 0 50 0.5)

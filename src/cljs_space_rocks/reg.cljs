@@ -73,12 +73,22 @@
    (mod/handle-key-change cofx kw data)))
 
 (rf/reg-event-fx
+ :resize
+ (fn [cofx [_ size]]
+   (mod/set-window-size-cofx cofx size)))
+
+(rf/reg-event-fx
  :log-time
- (fn [cofx [_ msg]]
-   {:log-time msg}))
+ (fn [{db :db} [_ msg]]
+   {:log-time msg
+    :db db}))
 
 
 ;; reg sub
+
+(rf/reg-sub
+ :win-size
+ (fn [db _] (:win-size db)))
 
 (rf/reg-sub
  :mode

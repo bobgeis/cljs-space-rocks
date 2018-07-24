@@ -20,10 +20,10 @@
 
 (def glow-max
   "ticks to go from max to min glow"
-  100)
+  60)
 
-(def pod-r 30)
-(def gem-r 30)
+(def pod-r 300)
+(def gem-r 300)
 (def radius
   {:gem gem-r
    :pod pod-r})
@@ -52,7 +52,7 @@
   [r stroke]
   [:path
    {:stroke stroke
-    :stroke-width 3
+    :stroke-width 30
     :fill "none"
     :d (sjoin
         ["M" (- r) 0
@@ -65,7 +65,7 @@
   [r stroke]
   [:path
    {:stroke stroke
-    :stroke-width 1.5
+    :stroke-width 15
     :fill "none"
     :d (sjoin
         ["M" (- r) 0
@@ -95,10 +95,10 @@
 
 (defn get-gem-arm1
   [[x y]]
-  [:line {:x1 0 :y1 0 :x2 x :y2 y :stroke dgray :stroke-width 4}])
+  [:line {:x1 0 :y1 0 :x2 x :y2 y :stroke dgray :stroke-width 40}])
 (defn get-gem-cir2
   [[x y]]
-  [:circle {:cx x :cy y :r 10 :fill gray :stroke "black"}])
+  [:circle {:cx x :cy y :r 100 :fill gray :stroke "black"}])
 
 (defn gem-bottom
   [a]
@@ -113,12 +113,12 @@
 (defn gem-top
   [bright dim]
   [:g {}
-   [:circle {:cx 0 :cy 0 :r 8 :fill lgray :stroke dim}]
-   [:line {:x1 0 :y1 0 :x2 gem-r :y2 0 :stroke lgray :stroke-width 7}]
-   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke lgray :stroke-width 8}]
-   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke dim :stroke-width 4}]
-   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke bright :stroke-width 2}]
-   (svg-emblem-miner 5 "#0055CC")])
+   [:circle {:cx 0 :cy 0 :r 80 :fill lgray :stroke dim}]
+   [:line {:x1 0 :y1 0 :x2 gem-r :y2 0 :stroke lgray :stroke-width 70}]
+   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke lgray :stroke-width 80}]
+   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke dim :stroke-width 40}]
+   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke bright :stroke-width 20}]
+   (svg-emblem-miner 50 "#0055CC")])
 
 
 (defn pod-bottom
@@ -129,20 +129,20 @@
 (defn pod-middle
   [a]
   [:g {:transform (svg/css-rotate a)}
-   [:line {:x1 0 :y1 (- 15) :x2 0 :y2 (- pod-r) :stroke-width 3 :stroke llgray}]
-   [:line {:x1 0 :y1 15 :x2 0 :y2 pod-r :stroke-width 3 :stroke llgray}]
-   [:ellipse {:cx 0 :cy (- 15) :rx 10 :ry 5 :fill llgray :stroke gray}]
-   [:ellipse {:cx 0 :cy 15 :rx 10 :ry 5 :fill llgray :stroke gray}]])
+   [:line {:x1 0 :y1 (- 150) :x2 0 :y2 (- pod-r) :stroke-width 30 :stroke llgray}]
+   [:line {:x1 0 :y1 150 :x2 0 :y2 pod-r :stroke-width 30 :stroke llgray}]
+   [:ellipse {:cx 0 :cy (- 150) :rx 10 :ry 50 :fill llgray :stroke gray}]
+   [:ellipse {:cx 0 :cy 150 :rx 10 :ry 50 :fill llgray :stroke gray}]])
 
 (defn pod-top
   [bright dim]
   [:g {}
-   [:circle {:cx 0 :cy 0 :r 8 :fill lgray :stroke dim}]
-   [:line {:x1 0 :y1 0 :x2 gem-r :y2 0 :stroke lgray :stroke-width 7}]
-   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke lgray :stroke-width 8}]
-   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke dim :stroke-width 4}]
-   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke bright :stroke-width 2}]
-   (svg-emblem-medic 5 "#FF0000")])
+   [:circle {:cx 0 :cy 0 :r 80 :fill lgray :stroke dim}]
+   [:line {:x1 0 :y1 0 :x2 gem-r :y2 0 :stroke lgray :stroke-width 70}]
+   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke lgray :stroke-width 80}]
+   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke dim :stroke-width 40}]
+   [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke bright :stroke-width 20}]
+   (svg-emblem-medic 50 "#FF0000")])
 
 ;; model
 
@@ -157,8 +157,8 @@
   []
   (assoc-fn
    {} :id
-   (create 150 500 (drand/rangle) :gem)
-  ;  (create 650 150 (drand/rangle) :pod)
+   (create 1500 5000 (drand/rangle) :gem)
+  ;  (create 6500 1500 (drand/rangle) :pod)
 ))
 
 ;; query

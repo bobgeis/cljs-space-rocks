@@ -1,6 +1,6 @@
-(defproject cljs-space-rocks "0.1.0-SNAPSHOT"
-  :description "FIXME: write this!"
-  :url "http://example.com/FIXME"
+(defproject cljs-space-rocks "0.1.0"
+  :description "Asteroids in clojure script with SVGs"
+  :url "https://github.com/bobgeis"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 

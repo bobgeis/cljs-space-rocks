@@ -40,6 +40,7 @@
     :omega-13 #queue []
     :omega-trigger nil
     :hiscore {}
+    :win-size [ misc/xt-svg misc/yt-svg]
     :scene {:player (player/initial-player) ;; player is a map of player-ship data
            ;; bases through ships are maps of multiple of that type of object
             ;; their :id kws are used as kw of the map,
@@ -350,10 +351,15 @@
   {:db (dissoc db :hiscore)
    :clear-local-store "cljs-space-rocks"})
 
+(defn set-window-size-cofx
+  [{db :db} size]
+  {:db (assoc db :win-size size)})
+
 ;; keymaps
 
 (def splash-down-axns
   {"Enter" #(change-mode-cofx % :play)
+   "Space" #(change-mode-cofx % :play)
    "Escape" init-state-cofx
    "u" wipe-hiscores-cofx
    "l" clog-cofx})

@@ -5,7 +5,7 @@
    [clojure.string :as string]
    [helper.log :refer [clog]]
    [helper.rf :as hr :refer [<sub >evt]]
-   [helper.fun :as hf]
+   [helper.fun :as hf :refer [sjoin]]
    [helper.browser :as hb]
    [cljs-space-rocks.model :as mod]
    [cljs-space-rocks.misc :as misc]
@@ -18,10 +18,6 @@
    [cljs-space-rocks.obj.particle :as particle]
    [cljs-space-rocks.obj.rock :as rock]))
 
-(defn css-transform
-  "take an object and generate a transform string"
-  [{:keys [x y a]}]
-  (str "translate( " x " " y " ) rotate( " a " )"))
 
 ;; text
 
@@ -49,11 +45,14 @@
 
 ;; svgs
 
-(def svg-board-style
-  {:style {:width misc/game-width
-           :height misc/game-height
-           :background "url(img/stars.jpg) no-repeat center"
-           :background-size "cover"}})
+(defn svg-board-setting
+  []
+  (let [[w h] (<sub [:win-size])]
+    {:style {:width w
+             :height h
+             :background "url(img/stars.jpg) no-repeat center"
+             :background-size "cover"}
+     :view-box (sjoin [0 0 misc/xt-box misc/yt-box])}))
 
 
 (defn svg-objs
@@ -127,7 +126,7 @@
   "top svg"
   []
   [:svg
-   svg-board-style
+   (svg-board-setting)
    (svg-bases)
    (svg-loot)
    (svg-particles)
@@ -142,7 +141,7 @@
   "top svg"
   []
   [:svg
-   svg-board-style
+   (svg-board-setting)
    (svg-bases)
    (svg-loot)
    (svg-particles)

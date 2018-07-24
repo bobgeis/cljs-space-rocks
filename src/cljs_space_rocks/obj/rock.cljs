@@ -3,7 +3,7 @@
   (:require
    [clojure.string :as str]
    [com.rpl.specter :as sp]
-   [helper.fun :as fun :refer [assoc-fn assoc-fn-seq sjoin]]
+   [helper.fun :as fun :refer [assoc-fn assoc-fn-seq sjoin floor]]
    [helper.geom :as geom :refer [ra->xy deg->rad]]
    [helper.svg :as svg :refer [css-transform]]
    [helper.color :refer [hsl]]
@@ -23,11 +23,11 @@
 
 (def size->radius
   "map size to radius (px)"
-  {:tiny 10
-   :small 15
-   :medium 21
-   :large 28
-   :huge 36})
+  {:tiny 100
+   :small 150
+   :medium 210
+   :large 280
+   :huge 360})
 
 (def size->smaller-size
   "map size to next lowest size"
@@ -59,7 +59,7 @@
 
 (def calf-dv
   "change in linear velocity of calves"
-  1.5)
+  15)
 
 (def type->colors
   {:ice {:outer (hsl 220 30 65)
@@ -128,9 +128,10 @@
 (defn get-point
   "Get a single point. Not deterministic!"
   [r a]
-  (ra->xy
-   (* r (+ (- 1 point-dr) (* 2 (rand point-dr))))
-   (+ (- (deg->rad a) point-da) (* 2 (rand point-da)))))
+  (let [[x y] (ra->xy
+               (* r (+ (- 1 point-dr) (* 2 (rand point-dr))))
+               (+ (- (deg->rad a) point-da) (* 2 (rand point-da))))]
+    [(floor x) (floor y)]))
 
 (defn get-points
   "Get the points for a rock.  Not deterministic!"
@@ -147,9 +148,9 @@
   "create a rock"
   [x y vx vy a va size type seed]
   {:x x :y y :vx vx :vy vy :a a :va va
-   :size size :r (get size->radius size 9)
+   :size size :r (size size->radius)
    :seed seed :id (id/get-id) :type type
-   :pts (get-points (get size->radius size 9))})
+   :pts (get-points (size size->radius))})
 
 (defn make-spawn
   "make the map for a rock that will spawn on the edge"
@@ -214,7 +215,7 @@
      [:polygon
       {:points (make-pts-string pts)
        :fill (:outer colors)
-       :stroke "black"}]
+       :stroke "black" :stroke-width 10}]
      [:polygon
       {:transform inner-transform
        :points (make-pts-string pts)

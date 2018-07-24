@@ -3,7 +3,7 @@
   Booms are circular visual effects produced by explosions or FTL jumps."
   (:require
    [com.rpl.specter :as sp]
-   [helper.fun :as fun :refer [assoc-fn]]
+   [helper.fun :as fun :refer [assoc-fn floor]]
    [helper.color :refer [hsl]]
    [helper.log :refer [clog]]
    [cljs-space-rocks.misc :as misc]
@@ -28,17 +28,17 @@
 
 (def outer-radii
   "radii of the outer edge of the boom (px)"
-  {:rock-ex 60
-   :rock-in 40
-   :ship-ex 40
-   :ship-in 30})
+  {:rock-ex 600
+   :rock-in 400
+   :ship-ex 400
+   :ship-in 300})
 
 (def type->dr
   "change in radius of boom"
-  {:rock-ex 5
-   :rock-in 2
-   :ship-ex 3
-   :ship-in 2
+  {:rock-ex 50
+   :rock-in 20
+   :ship-ex 30
+   :ship-in 20
    :long-life 0})
 
 ;; helpers
@@ -114,6 +114,6 @@
   "make an svg for the given boom"
   [{:keys [x y a r type life] :as obj}]
   [:circle
-   {:cx x :cy y :r r
+   {:cx (floor x) :cy (floor y) :r (floor r)
     :fill ((type type->get-color)
            (/ life (type type->lifetime)))}])

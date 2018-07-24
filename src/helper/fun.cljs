@@ -1,9 +1,11 @@
 (ns helper.fun
   "basic helper functions"
   (:require
-    [clojure.string :as string]))
+   [clojure.string :as string]))
 
 ;; misc utility
+
+(def floor "rounds down a float" Math/floor)
 
 (defn sjoin
   "string join on space"
@@ -67,15 +69,15 @@
   if the coll is not a map, then it is passed through unchanged"
   [coll keys]
   (if (map? coll)
-     (reduce #(conj %1 (get coll %2)) [] keys)
-     coll))
+    (reduce #(conj %1 (get coll %2)) [] keys)
+    coll))
 
 (defn vec->map
   "takes a vector or sequence and keys, and turns it into a map
   with the first value & first key assoced, etc"
   [coll keys]
   (if (map? coll) coll
-    (zipmap keys coll)))
+      (zipmap keys coll)))
 
 (defn assoc-fn
   "take a map/vec, fun, and values, and assoc using (fun val) to get the keys"
@@ -92,7 +94,7 @@
   If vals contains nils, will stop at first nil"
   [coll fun vals]
   (if (nil? (first vals)) coll
-    (recur (assoc-fn coll fun (first vals)) fun (rest vals))))
+      (recur (assoc-fn coll fun (first vals)) fun (rest vals))))
 
 (defn dissoc-fn
   "take a map/vec, fun, and values, and dissoc using (fun val) to get keys"
@@ -100,13 +102,13 @@
    (dissoc coll (fun val) val))
   ([coll fun val & vals]
    (let [ret (dissoc-fn coll fun val)]
-    (if vals
-      (recur ret fun (first vals) (next vals))
-      ret))))
+     (if vals
+       (recur ret fun (first vals) (next vals))
+       ret))))
 
 (defn dissoc-fn-seq
   "Like dissoc-fn but takes a seq of vals.
   If vals contains nils, will stop at first nil"
   [coll fun vals]
   (if (nil? (first vals)) coll
-    (recur (dissoc-fn coll fun (first vals)) fun (rest vals))))
+      (recur (dissoc-fn coll fun (first vals)) fun (rest vals))))
