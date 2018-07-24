@@ -25,23 +25,37 @@
   "text of the omega-13 count"
   []
   (let [count (<sub [:omega-seconds])
-        full? (<sub [:omega-full?])]
-    (text/omega-count count full?)))
-
-(defn text-score
-  []
-  (let [score (<sub [:score])]
-    (text/score score)))
+        full? (<sub [:omega-full?])
+        size (<sub [:win-size])]
+    (text/omega-count count full? size)))
 
 (defn text-hiscore
   []
-  (let [hiscore (<sub [:hiscore])]
-    (text/hiscore hiscore)))
+  (let [hiscore (<sub [:hiscore])
+        size (<sub [:win-size])]
+    (text/hiscore hiscore size)))
 
-(defn text-cargo
+(defn text-cargo-score
   []
-  (let [cargo (<sub [:cargo])]
-    (text/cargo cargo)))
+  (let [cargo (<sub [:cargo])
+        score (<sub [:score])
+        size (<sub [:win-size])]
+    (text/cargo-score cargo score size)))
+
+(defn text-descriptions
+  [mode]
+  (let [size (<sub [:win-size])]
+    (text/descriptions mode size)))
+
+(defn text-gems
+  []
+  (let [size (<sub [:win-size])]
+    (text/desc-gems size)))
+
+(defn text-pods
+  []
+  (let [size (<sub [:win-size])]
+    (text/desc-pods size)))
 
 ;; svgs
 
@@ -157,16 +171,17 @@
   []
   [:div
    (svg-board-play-mode)
-   (text-cargo)
-   (text-score)
+  ;  (text-cargo)
+   (text-cargo-score)
    (text-omega-count)])
 
 (defn view-gameover-mode
   []
   [:div
    (svg-board-gameover-mode)
-   (text/descriptions :gameover)
-   (text-score)
+   (text-descriptions :gameover)
+  ;  (text-score)
+   (text-cargo-score)
    (text-hiscore)
    (text-omega-count)])
 
@@ -174,9 +189,10 @@
   []
   [:div
    (svg-board-play-mode)
-   (text/descriptions :pause)
-   (text-cargo)
-   (text-score)
+   (text-descriptions :pause)
+  ;  (text-cargo)
+  ;  (text-score)
+   (text-cargo-score)
    (text-hiscore)
    (text-omega-count)])
 
@@ -184,9 +200,9 @@
   []
   [:div
    (svg-board-play-mode)
-   (text/descriptions :splash)
-   (text/desc-gems)
-  ;  (text/desc-pods)
+   (text-descriptions :splash)
+   (text-gems)
+  ;  (text-pods)
    (text-omega-count)
   ;  (text-cargo)
   ;  (text-score)

@@ -17,6 +17,8 @@
 
 * At least in the naive implementation, large numbers of SVGs perform worse than canvas.
 
+* It isn't necessary to specify a z-index to make html appear on top of the svg (contrast with canvas, where it sometimes was necessary).
+
 
 ## To Do
 

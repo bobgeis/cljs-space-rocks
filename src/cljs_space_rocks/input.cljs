@@ -21,9 +21,8 @@
   (reset! timeout-atom
           (js/setTimeout
            (fn []
-             (let [size (misc/choose-size js/window.innerWidth js/window.innerHeight)]
-               (rf/dispatch [:resize size])
-               (reset! timeout-atom nil)))
+             (rf/dispatch [:resize])
+             (reset! timeout-atom nil))
            200)))
 
 (defn add-top-listeners

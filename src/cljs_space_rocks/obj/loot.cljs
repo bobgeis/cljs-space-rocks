@@ -17,7 +17,7 @@
 
 (def lifetime 1500)
 (def speed (/ 50 60))
-(def spin 0.2)
+(def spin 5)
 (def radius 35)
 
 ;; helpers

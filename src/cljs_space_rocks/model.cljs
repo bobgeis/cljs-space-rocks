@@ -63,13 +63,13 @@
             :rock-timer (rock-timer/init-timer)
            ;; effects are changes in the scene that affect the larger game state
             :effects {}}})
-  ([{hiscore :hiscore}]
-   (assoc (init-state) :hiscore hiscore)))
+  ([{hiscore :hiscore win-size :win-size}]
+   (assoc (init-state) :hiscore hiscore :win-size win-size)))
 
 (defn init-app-state
   "initialize the app state"
-  [db ls-score]
-  {:db (init-state {:hiscore ls-score})})
+  [db ls-score size]
+  {:db (init-state {:hiscore ls-score :win-size size})})
 
 (defn sync-local-score
   "update the local-store's hiscore"
@@ -352,7 +352,7 @@
    :clear-local-store "cljs-space-rocks"})
 
 (defn set-window-size-cofx
-  [{db :db} size]
+  [{db :db size :get-win-size :as cofx}]
   {:db (assoc db :win-size size)})
 
 ;; keymaps

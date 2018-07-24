@@ -4,7 +4,8 @@
    [re-frame.core :as rf]
    [helper.browser :as hb]
    [helper.log :refer [clog]]
-   [cljs-space-rocks.model :as mod]))
+   [cljs-space-rocks.model :as mod]
+   [cljs-space-rocks.misc :as misc]))
 
 
 ;; reg cofx
@@ -14,6 +15,12 @@
  (fn [cofx ls-key]
    (assoc cofx :get-local-store
           (hb/get-local-storage ls-key))))
+
+(rf/reg-cofx
+ :get-win-size
+ (fn [cofx]
+   (assoc cofx :get-win-size
+          (misc/choose-size js/window.innerWidth js/window.innerHeight))))
 
 
 ;; reg fx
@@ -42,9 +49,10 @@
 
 (rf/reg-event-fx
  :init
- [(rf/inject-cofx :get-local-store "cljs-space-rocks")]
+ [(rf/inject-cofx :get-local-store "cljs-space-rocks")
+  (rf/inject-cofx :get-win-size)]
  (fn [cofx _]
-   (mod/init-app-state (:db cofx) (:get-local-store cofx))))
+   (mod/init-app-state (:db cofx) (:get-local-store cofx) (:get-win-size cofx))))
 
 (rf/reg-event-fx
  :sync-local-score
@@ -74,8 +82,9 @@
 
 (rf/reg-event-fx
  :resize
- (fn [cofx [_ size]]
-   (mod/set-window-size-cofx cofx size)))
+ [(rf/inject-cofx :get-win-size)]
+ (fn [cofx _]
+   (mod/set-window-size-cofx cofx)))
 
 (rf/reg-event-fx
  :log-time
