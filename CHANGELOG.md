@@ -2,7 +2,7 @@
 This is a learning project, so take the "versions" with a grain of salt.
 
 
-## [0.1.1] 2018-
+## [0.1.1] 2018-08-13
 
 * The game SVG scales to the size of the browser window.
 * The SVG coordinate system has been changed to allow rounding of decimals values to integers.  This should make the total SVG smaller.
