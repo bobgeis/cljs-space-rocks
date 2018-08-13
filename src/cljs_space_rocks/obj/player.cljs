@@ -2,12 +2,15 @@
   "ns for constants and functions related to the player"
   (:require
    [clojure.string :as string]
+   [re-frame.core :as rf]
    [helper.log :refer [clog]]
    [helper.fun :as fun :refer [sjoin]]
    [helper.geom :as geom :refer [ra->xy deg->rad]]
    [helper.svg :as svg :refer [css-transform]]
    [helper.color :as color :refer [rgb hsl]]
-   [cljs-space-rocks.misc :as misc]))
+   [cljs-space-rocks.misc :as misc]
+   [cljs-space-rocks.emblem :as emb]
+   [cljs-space-rocks.obj :as obj]))
 
 ;; player constants
 
@@ -70,7 +73,8 @@
    :retro player-retro
    :reload 0
    :firing false
-   :alive true})
+   :type ::player
+   :fizzbuzz true})
 
 ;; manipulation
 
@@ -128,10 +132,20 @@
   "progress the ship one tick"
   [ship]
   (-> ship
-      (misc/physics)
+      (obj/physics)
       (assoc
        :glow (tick-glow ship)
        :reload (tick-reload ship))))
+
+(defmethod obj/tick ::player [obj] (tick obj))
+
+(defn merge-control
+  "merge control settings onto player"
+  [player {:keys [acc va firing] :as control}]
+  (assoc player
+         :firing firing
+         :acc acc
+         :va va))
 
 ;; view
 
@@ -151,27 +165,11 @@
   "svg path for the player ship"
   (svg-body player-radius "#FFFFFF" "#FF0000"))
 
-(defn svg-emblem-medic
-  "medical emblem svg"
-  [r stroke]
-  [:path
-   {:stroke stroke
-    :stroke-width 20
-    :d (sjoin
-        ["M" (* 0.5 r) (* -0.25 r)
-         "L" (* 0.5 r) (* 0.25 r)
-         "M" (* 0.75 r) 0
-         "L" (* 0.25 r) 0])}])
-
-(def player-emblem-path
-  "svg path for player emblem"
-  (svg-emblem-medic player-radius "#FF0000"))
-
 (defn player-one-engine-path
   "svg path for one player engine"
-  [r sign glow dim]
+  [r sign bright dim]
   [:ellipse
-   {:fill glow
+   {:fill bright
     :stroke dim
     :stroke-width 10
     :cx (/ r 12)
@@ -181,24 +179,28 @@
 
 (defn svg-player
   "svg group for the player ship"
-  [{:keys [x y a glow] :as player}]
+  [{:keys [x y a glow r] :as player}]
   (let [ratio (/ glow player-max-glow)
-        glow (misc/get-glow-bright ratio)
+        bright (misc/get-glow-bright ratio)
         dim (misc/get-glow-dim ratio)]
     [:g {:transform (css-transform player)}
      player-body-path
-     player-emblem-path
-     (player-one-engine-path player-radius 1 glow dim)
-     (player-one-engine-path player-radius -1 glow dim)]))
+    ;  player-emblem-path
+     (emb/fat-cross "#FF0000" (/ r 2) 0 0 (emb/scale (/ r 3)))
+    ;  (emb/orbitals "#FF0000" (/ r 2) 0 0 (emb/scale (/ r 3)))
+    ;  (emb/tee-bar "#FF0000" (/ r 2) 0 0 (emb/scale (/ r 3)))
+     (player-one-engine-path player-radius 1 bright dim)
+     (player-one-engine-path player-radius -1 bright dim)]))
+
+(defmethod obj/svg ::player [obj] (svg-player obj))
 
 (defn svg-omega-player
-  [{:keys [x y a] :as player} ratio]
+  [{:keys [x y a] :as player}]
   (let [r player-radius
-        color (hsl "150" "100" "75" (- 1 (* ratio 0.5)))]
+        color (hsl 150 100 75 0.5)]
     [:g {:transform (css-transform player)}
      (svg-body player-radius color color)
      (player-one-engine-path r 1 color color)
      (player-one-engine-path r -1 color color)
      [:circle {:stroke color :stroke-width 20 :fill "none"
-               :cx 0 :cy 0 :r (* 10 player-radius ratio)}]]))
-
+               :cx 0 :cy 0 :r (* 7 player-radius)}]]))

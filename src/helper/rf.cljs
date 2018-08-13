@@ -30,3 +30,10 @@
   so that #(rf/dispatch [:init]) because (>evt [:init])"
   [vector]
   (fn [] (rf/dispatch vector)))
+
+(defn basic-sub
+  "register a simple getter subscription, expects a keyword and an option vector of keywords"
+  ([kw kpath]
+   (rf/reg-sub kw (fn [db _] (get-in db kpath))))
+  ([kw]
+   (rf/reg-sub kw (fn [db _] (kw db)))))

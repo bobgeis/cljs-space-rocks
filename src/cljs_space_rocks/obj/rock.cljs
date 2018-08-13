@@ -3,6 +3,7 @@
   (:require
    [clojure.string :as str]
    [com.rpl.specter :as sp]
+   [re-frame.core :as rf]
    [helper.fun :as fun :refer [assoc-fn assoc-fn-seq sjoin floor]]
    [helper.geom :as geom :refer [ra->xy deg->rad]]
    [helper.svg :as svg :refer [css-transform]]
@@ -10,12 +11,13 @@
    [helper.log :as log :refer [clog]]
    [cljs-space-rocks.drand :as drand]
    [cljs-space-rocks.id :as id]
-   [cljs-space-rocks.misc :as misc]))
+   [cljs-space-rocks.misc :as misc]
+   [cljs-space-rocks.obj :as obj]))
 
 ;; constants
 
-(def types
-  "types of asteroids"
+(def mats
+  "material types of asteroids"
   {:C "carbonaceous"
    :S "silicaceous"
    :M "metallic"
@@ -61,7 +63,7 @@
   "change in linear velocity of calves"
   15)
 
-(def type->colors
+(def mat->colors
   {:ice {:outer (hsl 220 30 65)
          :stroke (hsl 220 30 30)
          :inner (hsl 220 30 75)}
@@ -75,21 +77,21 @@
        :stroke (hsl 10 30 30)
        :inner (hsl 10 30 70)}})
 
-(def type->calf-nums
+(def mat->calf-nums
   "use type to get vecs of numbers for rand-nth"
-  {:M [1 2 2 2 2 2 3 3]
-   :C [1 1 2 2 2 2 2 3]
+  {:M [1 1 2 2 2 2 3 3]
+   :C [1 1 1 2 2 2 2 3]
    :S [1 1 1 2 2 2 2 2]
    :ice [1 1 1 1 2 2 2 2]})
 
-(def type->gem-chance
+(def mat->gem-chance
   "get the gem chance for each rock type"
-  {:M 0.2
-   :C 0.25
-   :S 0.3
-   :ice 0.5})
+  {:M 0.15
+   :C 0.2
+   :S 0.25
+   :ice 0.4})
 
-(def spawn-sizes
+(def spawn-size
   "the sizes that things can spawn at, duplicates are more likely"
   [:medium
    :large
@@ -98,8 +100,8 @@
    :large
    :huge])
 
-(def spawn-types
-  "the types that can spawn, duplicates are more likely"
+(def spawn-mat
+  "the material types that can spawn, duplicates are more likely"
   [:C
    :C
    :C
@@ -122,8 +124,8 @@
 
 (defn get-num-calves
   "get the number of calves"
-  [type]
-  (drand/dnth (type type->calf-nums)))
+  [mat]
+  (drand/dnth (mat mat->calf-nums)))
 
 (defn get-point
   "Get a single point. Not deterministic!"
@@ -146,11 +148,12 @@
 
 (defn create
   "create a rock"
-  [x y vx vy a va size type seed]
+  [x y vx vy a va size mat seed]
   {:x x :y y :vx vx :vy vy :a a :va va
    :size size :r (size size->radius)
-   :seed seed :id (id/get-id) :type type
-   :pts (get-points (size size->radius))})
+   :seed seed :id (id/get-id) :mat mat :type ::rock
+   :pts (get-points (size size->radius))
+   :fizzbuzz true})
 
 (defn make-spawn
   "make the map for a rock that will spawn on the edge"
@@ -159,10 +162,10 @@
         [vx vy] (ra->xy (drand/drand calf-dv) (drand/dangle))
         a (drand/dangle)
         va (drand/dctr calf-dva)
-        type (drand/dnth spawn-types)
-        size (drand/dnth spawn-sizes)
+        mat (drand/dnth spawn-mat)
+        size (drand/dnth spawn-size)
         seed (drand/drseed)]
-    (create x y vx vy a va size type seed)))
+    (create x y vx vy a va size mat seed)))
 
 (defn initial-rocks
   "get the initial rock-map for game start"
@@ -176,28 +179,27 @@
 
 (defn make-calf
   "make one calf from this rock"
-  [{:keys [x y vx vy a va r type size] :as rock}]
+  [{:keys [x y vx vy a va r mat size] :as rock}]
   (let [dva (drand/dctr calf-dva)
         [ax ay] (ra->xy (drand/drand calf-dv) (drand/dangle))
         [dx dy] (ra->xy (drand/drand r) (drand/dangle))]
     (create (+ x dx) (+ y dy) (+ vx ax) (+ vy ay) a (+ va dva)
-            (size size->smaller-size) type (drand/drseed))))
+            (size size->smaller-size) mat (drand/drseed))))
 
 (defn make-calves
   "given a rock, return a seq of calves"
-  [{:keys [type size seed] :as rock}]
+  [{:keys [mat size seed] :as rock}]
   (if (= size :tiny) []
-      (let [n (get-num-calves type)]
+      (let [n (get-num-calves mat)]
         (repeatedly n #(make-calf rock)))))
 
 ;; query
 
 ;; manipulation
 
-(defn tick
-  "tick a rock"
-  [rock]
-  (misc/physics rock))
+;; update
+
+;; default defmethod is okay
 
 ;; view
 
@@ -209,8 +211,8 @@
 
 (defn svg
   "polygon svg for the given rock"
-  [{:keys [x y a r pts inner-pts type] :as rock}]
-  (let [colors (type type->colors)]
+  [{:keys [x y a r pts inner-pts mat] :as rock}]
+  (let [colors (mat mat->colors)]
     [:g {:transform (css-transform rock)}
      [:polygon
       {:points (make-pts-string pts)
@@ -221,10 +223,12 @@
        :points (make-pts-string pts)
        :fill (:inner colors)}]]))
 
+(defmethod obj/svg ::rock [obj] (svg obj))
+
 (defn svg-omega
   "svg for the rock while time travelling"
-  [{:keys [x y a r pts inner-pts type] :as rock}]
-  (let [color (hsl "150" "100" "75" "0.5")]
+  [{:keys [x y a r pts inner-pts] :as rock}]
+  (let [color (hsl 150 100 75 0.5)]
     [:g {:transform (css-transform rock)}
      [:polygon
       {:points (make-pts-string pts)

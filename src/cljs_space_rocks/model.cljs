@@ -6,8 +6,10 @@
    [helper.log :refer [clog]]
    [helper.rf :refer [spy]]
    [helper.browser :as hb]
-   [helper.fun :as fun :refer [assoc-fn]]
+   [helper.fun :as fun :refer [assoc-fn floor]]
    [cljs-space-rocks.misc :as misc]
+   [cljs-space-rocks.omega :as omega]
+   [cljs-space-rocks.obj :as obj]
    [cljs-space-rocks.obj.player :as player]
    [cljs-space-rocks.obj.base :as base]
    [cljs-space-rocks.obj.boom :as boom]
@@ -15,11 +17,14 @@
    [cljs-space-rocks.obj.loot :as loot]
    [cljs-space-rocks.obj.particle :as particle]
    [cljs-space-rocks.obj.rock :as rock]
+   [cljs-space-rocks.obj.ship :as ship]
    [cljs-space-rocks.obj.base-player :as baseplay]
    [cljs-space-rocks.obj.bullet-rock :as bullrock]
    [cljs-space-rocks.obj.loot-player :as lootplay]
    [cljs-space-rocks.obj.player-rock :as playrock]
-   [cljs-space-rocks.obj.rock-timer :as rock-timer]))
+   [cljs-space-rocks.obj.rock-ship :as rockship]
+   [cljs-space-rocks.obj.rock-timer :as rock-timer]
+   [cljs-space-rocks.obj.ship-timer :as ship-timer]))
 
 ;; constants and helpers
 
@@ -37,10 +42,9 @@
   "an initial state"
   ([]
    {:mode :splash
-    :omega-13 #queue []
-    :omega-trigger nil
+    :omega omega/initial-omega
     :hiscore {}
-    :win-size [ misc/xt-svg misc/yt-svg]
+    :win-size [(/ misc/xt-box 10) (/ misc/yt-box 10)]
     :scene {:player (player/initial-player) ;; player is a map of player-ship data
            ;; bases through ships are maps of multiple of that type of object
             ;; their :id kws are used as kw of the map,
@@ -52,15 +56,14 @@
             :loot {}
             :particles {}
             :rocks (rock/initial-rocks)
-            :ships {}
-          ;  :ship-timer 0
-          ;  :rock-timer 0
+            :ships (ship/initial-ships)
            ;; cargo and score represent loot delivery and traveler safety
             :cargo {:gem 0 :pod 0}
             :score {:rock 0 :gem 0 :pod 0 :ship 0}
            ;; tick is the number of ticks this scene has progressed for
             :tick 0
             :rock-timer (rock-timer/init-timer)
+            :ship-timer (ship-timer/init-timer)
            ;; effects are changes in the scene that affect the larger game state
             :effects {}}})
   ([{hiscore :hiscore win-size :win-size}]
@@ -88,37 +91,6 @@
   [db]
   (sp/select [:scene :score] db))
 
-(defn get-db-omega-player
-  "get the player from the right omega-13 scene"
-  [{omega-13 :omega-13 omega-trigger :omega-trigger}]
-  (if (not omega-trigger) nil
-      (let [ratio (/ omega-trigger misc/omega-13-countdown)
-            index (Math/floor (* ratio misc/number-scenes-to-save))]
-        (:player (nth omega-13 index)))))
-
-(defn get-db-omega-rocks
-  "get the rocks from the right omega-13 scene"
-  [{omega-13 :omega-13 omega-trigger :omega-trigger}]
-  (if (not omega-trigger) nil
-      (let [ratio (/ omega-trigger misc/omega-13-countdown)
-            index (Math/floor (* ratio misc/number-scenes-to-save))]
-        (:rocks (nth omega-13 index)))))
-
-(defn get-db-omega-queue-count
-  "get the count of the omega-13 queue"
-  [{omega-13 :omega-13}]
-  (count omega-13))
-
-(defn get-db-omega-queue-seconds
-  "how many seconds of scenes are saved in the queue"
-  [db]
-  (js/Math.floor (/ (get-db-omega-queue-count db) misc/scenes-per-second)))
-
-(defn get-db-omega-queue-full?
-  "is the omega-13 queue full?"
-  [db]
-  (>= (get-db-omega-queue-count db) misc/number-scenes-to-save))
-
 ;; manipulation
 
 (defn tick-objs
@@ -129,7 +101,7 @@
 (defn player-update
   "update the player in the scene map"
   [scene]
-  (update scene :player player/tick))
+  (update scene :player obj/tick))
 
 (defn player-neutral
   "set the player to neutral in the scene map (no acc/turn/firing)"
@@ -140,14 +112,15 @@
   "apply physics, lifetime, etc"
   [{{reload :reload firing :firing :as player} :player :as scene}]
   (assoc scene
-         :bases (tick-objs (:bases scene) base/tick)
+         :bases (obj/tick-all (:bases scene))
          :bullets (cond-> (:bullets scene)
-                    true (tick-objs bullet/tick)
+                    true (obj/tick-all)
                     (player/fire? player) (assoc-fn :id (bullet/create player)))
-         :booms (tick-objs (:booms scene) boom/tick)
-         :loot (tick-objs (:loot scene) loot/tick)
-         :particles (tick-objs (:particles scene) particle/tick)
-         :rocks (tick-objs (:rocks scene) rock/tick)))
+         :booms (obj/tick-all (:booms scene))
+         :loot (obj/tick-all (:loot scene))
+         :particles (obj/tick-all (:particles scene))
+         :rocks (obj/tick-all (:rocks scene))
+         :ships (obj/tick-all (:ships scene))))
 
 (defn inc-tick
   "increment the tick counter"
@@ -184,24 +157,6 @@
   [db firing]
   (update-in db [:scene :player] #(player/set-firing % firing)))
 
-(defn trigger-omega-13
-  "activate the omega-13 on this db"
-  [{:keys [omega-13 mode] :as db}]
-  (let [scene (peek omega-13)
-        mode' (get {:gameover :play :go-pause :pause} mode mode)]
-    (assoc db
-           :scene (player-neutral scene)
-           :mode mode'
-           :omega-13 #queue []
-           :omega-trigger nil)))
-
-(defn maybe-trigger-omega-13
-  [{:keys [omega-trigger] :as db}]
-  (cond
-    (not omega-trigger) db
-    (> omega-trigger 0) (assoc db :omega-trigger (dec omega-trigger))
-    :else (trigger-omega-13 db)))
-
 ;; update functions
 
 (defn tick-play-scene
@@ -215,7 +170,9 @@
       (bullrock/interact)
       (lootplay/interact)
       (playrock/interact)
-      (rock-timer/tick)))
+      (rockship/interact)
+      (rock-timer/tick)
+      (ship-timer/tick)))
 
 (defn tick-gameover-scene
   "tick the scene in gameover mode"
@@ -223,7 +180,9 @@
   (-> scene
       (self-updates)
       (bullrock/interact)
-      (rock-timer/tick)))
+      (rockship/interact)
+      (rock-timer/tick)
+      (ship-timer/tick)))
 
 (defn maybe-game-over
   "handle possible play->gameover"
@@ -241,23 +200,6 @@
     (recur (pop q) n)
     q))
 
-(defn maybe-push-omega-13
-  "maybe add the current scene to the time-machine"
-  [{{tick :tick :as scene} :scene :keys [omega-13 omega-trigger mode] :as db}]
-  (cond
-    ;; abort if we're no longer in play mode or 60 ticks haven't elapsed
-    (not= :play mode) db
-    (not= 0 (mod tick misc/ticks-per-scene-save)) db
-    ;; otherwise, push the scene into the time machine
-    :else
-    (assoc db
-           :omega-13
-           (conj (if (and (not omega-trigger)
-                          (>= (count omega-13) misc/number-scenes-to-save))
-                   (trim-queue omega-13 misc/number-scenes-to-save)
-                   omega-13)
-                 scene))))
-
 (defn tick-db-play
   "handle play ticks on db."
   [db]
@@ -265,8 +207,8 @@
       (update :scene tick-play-scene)
       (merge-scores)
       (maybe-game-over)
-      (maybe-push-omega-13)
-      (maybe-trigger-omega-13)))
+      (omega/tick-timeline-db)
+      (omega/tick-or-trigger-db)))
 
 (defn tick-db-gameover
   "handle gameover ticks on db.
@@ -274,22 +216,22 @@
   [db]
   (-> db
       (update :scene tick-gameover-scene)
-      (maybe-trigger-omega-13)))
+      (omega/tick-or-trigger-db)))
 
 (defn tick-db-splash
   "handle splash ticks on db (no ops for now)"
   [db]
-  (maybe-trigger-omega-13 db))
+  (omega/tick-or-trigger-db db))
 
 (defn tick-db-pause
   "handle pause ticks on db (no ops for now)"
   [db]
-  (maybe-trigger-omega-13 db))
+  (omega/tick-or-trigger-db db))
 
 (defn tick-db-go-pause
   "handle go-pause ticks on db (no ops for now)"
   [db]
-  (maybe-trigger-omega-13 db))
+  (omega/tick-or-trigger-db db))
 
 (def mode->tick-fn
   "update function for each game mode"
@@ -306,7 +248,7 @@
         db' (tick-fn db)]
     {:db db'}))
 
-;; cofx fns
+;; cofx fns: these take a cofx map and return an fx map
 
 (defn init-state-cofx
   [{db :db}]
@@ -339,12 +281,20 @@
   [{db :db} mode]
   {:db (change-mode db mode)})
 
-(defn maybe-set-omega-trigger-cofx
-  "if the queue isn't full, then we don't allow time travel"
-  [{db :db} val]
-  (if (get-db-omega-queue-full? db)
-    {:db (assoc db :omega-trigger val)}
-    {:db db}))
+(defn omega-on-cofx
+  "try to turn on the omega-13 device"
+  [{db :db}]
+  {:db (omega/start-db db)})
+
+(defn omega-trigger-cofx
+  "set the trigger for the omega-13 device"
+  [{db :db}]
+  {:db (omega/set-trigger-db db)})
+
+(defn omega-off-cofx
+  "turn off the omega-13 device"
+  [{db :db}]
+  {:db (omega/stop-db db)})
 
 (defn wipe-hiscores-cofx
   [{db :db}]
@@ -382,7 +332,8 @@
    "Shift" #(firing-player-cofx % true)
    "p" #(change-mode-cofx % :pause)
    "Enter" #(change-mode-cofx % :pause)
-   "z" #(maybe-set-omega-trigger-cofx % misc/omega-13-countdown)
+   "z" #(omega-on-cofx %)
+   "x" #(omega-off-cofx %)
    "u" wipe-hiscores-cofx
    "l" clog-cofx})
 
@@ -398,7 +349,7 @@
    "s" #(acc-player-cofx % 0)
    " " #(firing-player-cofx % false)
    "Shift" #(firing-player-cofx % false)
-   "z" #(maybe-set-omega-trigger-cofx % nil)})
+   "z" #(omega-trigger-cofx %)})
 
 (def pause-down-axns
   {"ArrowLeft" #(turn-player-cofx % -1)
@@ -413,7 +364,8 @@
    "Shift" #(firing-player-cofx % true)
    "p" #(change-mode-cofx % :play)
    "Enter" #(change-mode-cofx % :play)
-   "z" #(maybe-set-omega-trigger-cofx % misc/omega-13-countdown)
+   "z" #(omega-on-cofx %)
+   "x" #(omega-off-cofx %)
    "Escape" init-state-cofx
    "u" wipe-hiscores-cofx
    "l" clog-cofx})
@@ -430,11 +382,12 @@
    "s" #(acc-player-cofx % 0)
    " " #(firing-player-cofx % false)
    "Shift" #(firing-player-cofx % false)
-   "z" #(maybe-set-omega-trigger-cofx % nil)})
+   "z" #(omega-trigger-cofx %)})
 
 (def gameover-down-axns
   {"p" #(change-mode-cofx % :go-pause)
-   "z" #(maybe-set-omega-trigger-cofx % misc/omega-13-countdown)
+   "z" #(omega-on-cofx %)
+   "x" #(omega-off-cofx %)
    "Enter" init-state-cofx
    "Escape" init-state-cofx
    "u" wipe-hiscores-cofx
@@ -442,11 +395,12 @@
 
 (def gameover-up-axns
   "map of keyup actions for gameover mode"
-  {"z" #(maybe-set-omega-trigger-cofx % nil)})
+  {"z" #(omega-trigger-cofx %)})
 
 (def go-pause-down-axns
   {"p" #(change-mode-cofx % :gameover)
-   "z" #(maybe-set-omega-trigger-cofx % misc/omega-13-countdown)
+   "z" #(omega-on-cofx %)
+   "x" #(omega-off-cofx %)
    "Enter" init-state-cofx
    "Escape" init-state-cofx
    "u" wipe-hiscores-cofx
@@ -454,7 +408,7 @@
 
 (def go-pause-up-axns
   "map of keyup actions for gameover mode"
-  {"z" #(maybe-set-omega-trigger-cofx % nil)})
+  {"z" #(omega-trigger-cofx %)})
 
 (def down-axns-by-mode
   "map of key-down actions for each mode"

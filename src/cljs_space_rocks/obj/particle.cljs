@@ -2,13 +2,15 @@
   "ns for particle effects"
   (:require
    [com.rpl.specter :as sp]
+   [re-frame.core :as rf]
    [helper.log :refer [clog]]
    [helper.fun :as fun :refer [floor]]
    [helper.color :refer [hsl]]
    [helper.geom :as geom :refer [ra->xy]]
    [cljs-space-rocks.id :as id]
    [cljs-space-rocks.misc :as misc]
-   [cljs-space-rocks.drand :as drand]))
+   [cljs-space-rocks.drand :as drand]
+   [cljs-space-rocks.obj :as obj]))
 
 
 ;; constants
@@ -41,7 +43,7 @@
   "create a particle from args"
   [x y vx vy]
   {:x x :y y :vx vx :vy vy :drag drag
-   :life max-life :id (id/get-id)})
+   :life max-life :id (id/get-id) :type ::ex})
 
 (defn obj->ex-particle
   "make an explosion particle from an object"
@@ -56,20 +58,17 @@
 
 ;; query
 
-(defn kill?
-  "a particle should be removed if its life is 0"
-  [obj]
-  (= 0 (:life obj)))
-
 ;; manipulation
 
 (defn tick
   "tick one particle"
   [obj]
-  (if (kill? obj) sp/NONE
+  (if (obj/kill? obj) sp/NONE
       (-> obj
-          (misc/physics)
+          (obj/physics)
           (assoc :life (dec (:life obj))))))
+
+(defmethod obj/tick ::ex [obj] (tick obj))
 
 ;; view
 
@@ -82,3 +81,5 @@
       :x2 (floor (+ x (* svg-length vx))) :y2 (floor (+ y (* svg-length vy)))
       :stroke (get-color (/ life max-life))
       :stroke-width 20}]))
+
+(defmethod obj/svg ::ex [obj] (svg obj))

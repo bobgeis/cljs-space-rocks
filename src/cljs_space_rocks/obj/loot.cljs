@@ -2,22 +2,29 @@
   "ns for gem & pod functions"
   (:require
    [com.rpl.specter :as sp]
+   [re-frame.core :as rf]
    [helper.geom :refer [ra->xy deg->rad]]
    [helper.svg :refer [css-transform]]
    [helper.log :refer [clog]]
    [cljs-space-rocks.drand :as drand]
    [cljs-space-rocks.id :as id]
-   [cljs-space-rocks.misc :as misc]))
+   [cljs-space-rocks.misc :as misc]
+   [cljs-space-rocks.obj :as obj]))
 
 ;; constants
 
 (def types
-  {:gem "a valuable crystalline mineral"
-   :pod "an escape pod or lifepod from an exploded ship"})
+  {::gem "a valuable crystalline mineral"
+   ::pod "an escape pod or lifepod from an exploded ship"})
 
-(def lifetime 1500)
-(def speed (/ 50 60))
-(def spin 5)
+(def res->type
+  "resource names to loot-type names"
+  {:gem ::gem
+   :pod ::pod})
+
+(def lifetime "how many ticks loot lasts before fading" 1500)
+(def speed "additional velocity loot gets on creation" 10)
+(def spin "additional angular velocity loot gets on creation" 10)
 (def radius 35)
 
 ;; helpers
@@ -26,18 +33,19 @@
 
 (defn create
   "create from args"
-  [x y vx vy a va type]
+  [x y vx vy a va res type]
   {:x x :y y :vx vx :vy vy :a a :va va
-   :r radius :type type :id (id/get-id)
+   :r radius :id (id/get-id)
+   :res res :type type
    :life lifetime})
 
 (defn obj->loot
   "create a loot item on the given obj"
-  [{:keys [x y a vx vy va r] :as obj} type]
+  [{:keys [x y a vx vy va r] :as obj} res]
   (let [dva (drand/dctr spin)
-        [ax ay] (ra->xy (drand/drand speed) (drand/dangle))
+        [ax ay] (ra->xy (drand/drand (/ speed 2) speed) (drand/dangle))
         [dx dy] (ra->xy (drand/drand r) (drand/dangle))]
-    (create (+ x dx) (+ y dy) (+ vx ax) (+ vy ay) a (+ va dva) type)))
+    (create (+ x dx) (+ y dy) (+ vx ax) (+ vy ay) a (+ va dva) res (res res->type))))
 
 ;; query
 
@@ -48,10 +56,13 @@
 (defn tick
   "tick one loot obj"
   [obj]
-  (if (misc/kill? obj) sp/NONE
+  (if (obj/kill? obj) sp/NONE
       (-> obj
-          (misc/physics)
+          (obj/physics)
           (update :life dec))))
+
+(defmethod obj/tick ::gem [obj] (tick obj))
+(defmethod obj/tick ::pod [obj] (tick obj))
 
 ;; svg
 
@@ -70,11 +81,19 @@
   (let [ratio (/ life lifetime)
         glow (misc/get-glow-bright ratio)
         dim (misc/get-glow-dim ratio)]
-    [:circle
-     {:cx x :cy y :r r
-      :fill glow :stroke dim
-      :stroke-width 10}]))
+    [:g {:transform (css-transform pod)}
+     [:circle
+      {:cx 0 :cy r :r (/ r 2.5)
+       :fill glow :stroke dim
+       :stroke-width 10}]
+     [:circle
+      {:cx 0 :cy 0 :r r
+       :fill "#DDDDDD" :stroke "#FF0000"
+       :stroke-width 15}]
+     [:circle
+      {:cx 0 :cy r :r (/ r 2.5)
+       :fill glow :stroke dim
+       :stroke-width 10}]]))
 
-(defmulti svg :type)
-(defmethod svg :gem  [obj] (draw-gem obj))
-(defmethod svg :pod [obj] (draw-pod obj))
+(defmethod obj/svg ::gem [obj] (draw-gem obj))
+(defmethod obj/svg ::pod [obj] (draw-pod obj))

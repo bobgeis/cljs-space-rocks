@@ -4,68 +4,42 @@
    [com.rpl.specter :as sp]
    [helper.fun :as fun :refer [floor]]
    [helper.color :refer [rgb hsl]]
+   [helper.rf :as hr :refer [<sub >evt spy]]
    [helper.log :refer [clog]]
    [helper.geom :as geom :refer [max-degrees ra->xy deg->rad]]
    [cljs-space-rocks.drand :as drand]))
 
-;; size of the play svg in external coordinates
-(def xt-svg 800)
-(def yt-svg 650)
-(def xc-svg (/ xt-svg 2))
-(def yc-svg (/ yt-svg 2))
-(def svg-ratio (/ xt-svg yt-svg))
+;; svg
+(def xt-box
+  "width of the play area in internal units"
+  8000)
 
-(defn choose-size
+(def yt-box
+  "height of the play area in internal units"
+  6500)
+
+(def max-x xt-box)
+(def max-y yt-box)
+
+(def xc-box
+  "center of the play area
+  x-axis rounded down in internal units"
+  (floor (/ xt-box 2)))
+
+(def yc-box
+  "center of the play area
+  y-axis rounded down in internal units"
+  (floor (/ yt-box 2)))
+
+(def svg-ratio "ratio of width/height" (/ xt-box yt-box))
+
+(defn choose-svg-size
+  "given window width and height, choose the dimensions for the SVG"
   [w h]
   (let [h' (* h svg-ratio)]
     (if (> w h')
       [h' h]
       [w (/ w svg-ratio)])))
-
-;; size of the play svg viewbox
-(def xt-box
-  "width of the play area"
-  8000)
-
-(def yt-box
-  "height of the play area"
-  6500)
-
-(def xc-box
-  "center of the play area
-  x-axis rounded down"
-  (floor (/ xt-box 2)))
-
-(def yc-box
-  "center of the play area
-  y-axis rounded down"
-  (floor (/ yt-box 2)))
-
-;; drag
-
-(defn apply-drag
-  [v d]
-  (* v (- 1 d)))
-
-;; physics
-
-(defn physics
-  "move an object using velocity, acceleration and drag"
-  [{:keys [x vx y vy a va acc drag clamp] :as obj}]
-  (let [[ax ay] (if acc (ra->xy acc (deg->rad a)) [0 0])
-        edge (if clamp fun/clamp fun/wrap)]
-    (assoc obj
-           :x (edge (+ x vx ax) xt-box)
-           :y (edge (+ y vy ay) yt-box)
-           :a (fun/wrap (+ a va) max-degrees)
-           :vx (apply-drag (+ vx ax) drag)
-           :vy (apply-drag (+ vy ay) drag))))
-
-(defn kill?
-  "an object should be removed if its life is 0"
-  [obj]
-  (= 0 (:life obj)))
-
 
 ;; onscreen functions
 
@@ -87,11 +61,43 @@
   "is the given x y r circle onscreen?
   2 args assumes r=0, 1 arg assumes map"
   ([x y r]
-   (or (x-onscreen? x r) (y-onscreen? y r)))
+   (and (x-onscreen? x r) (y-onscreen? y r)))
   ([x y]
    (onscreen? x y 0))
   ([{:keys [x y r]}]
    (onscreen? x y r)))
+
+(defn x-offscreen?
+  "true if any of x+/-r is outside 0->xmax"
+  ([x r]
+   (fun/outside? x r xt-box))
+  ([x]
+   (x-offscreen? x)))
+
+(defn y-offscreen?
+  "true if any of y+/-r is outside 0->ymax"
+  ([y r]
+   (fun/outside? y r yt-box))
+  ([y]
+   (y-offscreen? y 0)))
+
+(defn get-offscreen
+  "returns a vector of [x y]-offscreen? from an obj map"
+  [{:keys [x y r]}]
+  [(x-offscreen? x r) (y-offscreen? y r)])
+
+(defn get-replica-objs
+  "get replica objects offset by the svg-box size.
+  these can be used to draw objects at the edge of the screen that should wrap."
+  [{:keys [x y] :as obj}]
+  (let [[sx sy] (get-offscreen obj)
+        x' (- x (* sx max-x))
+        y' (- y (* sy max-y))]
+    (if (and (not sx) (not sy)) nil
+        (cond-> [obj]
+          sx (conj (merge obj {:x x' :y y}))
+          sy (conj (merge obj {:x x :y y'}))
+          (and sx sy) (conj (merge obj {:x x' :y y'}))))))
 
 ;; directions (degrees)
 
@@ -106,10 +112,23 @@
    :west west
    :north north})
 
+(def opposite-directions
+  {east west
+   west east
+   north south
+   south north})
+
 (defn dr-direction
   "get a (deterministically) random direction"
   []
   (drand/dnth (vals directions)))
+
+(defn dr-angle-in
+  "get an angle pointing into the area from the edge of the given direction.
+  eg if north (270) is passed in, get a random angle pointing more-or-less south (90)"
+  [dir]
+  (let [dir' (get opposite-directions dir)]
+    (drand/dctr dir' 60)))
 
 ;; glow colors
 
@@ -143,38 +162,15 @@
 ;; random point on the edge
 
 (defn drand-edge-point
-  "get a (det) random point [x,y] on the edge of the play area"
-  []
-  (let [dir (dr-direction)
-        x (drand/dint xt-box)
-        y (drand/dint yt-box)]
-    (cond
-      (= dir north) [x 0]
-      (= dir east) [xt-box y]
-      (= dir south) [x yt-box]
-      (= dir west) [0 y])))
+  "get a (det) random point & angle [x,y,a] on the edge of the play area, the angle will point in."
+  ([dir]
+   (let [x (drand/dint xt-box)
+         y (drand/dint yt-box)]
+     (cond
+       (= dir north) [x 0]
+       (= dir east) [xt-box y]
+       (= dir south) [x yt-box]
+       (= dir west) [0 y])))
+  ([]
+   (drand-edge-point (dr-direction))))
 
-;; omega-13 related
-
-(def omega-13-countdown
-  "number of ticks it takes for the omega-13 to activate."
-  120)
-
-(def omega-13-seconds
-  "number of seconds for the omega-13 to become available"
-  13)
-
-(def ticks-per-second
-  60)
-
-(def scenes-per-second
-  "how many scenes to save every second"
-  6)
-
-(def ticks-per-scene-save
-  "how many ticks to wait before saving a scene"
-  (/ ticks-per-second scenes-per-second))
-
-(def number-scenes-to-save
-  "how many scenes should be saved (max)"
-  (* omega-13-seconds scenes-per-second))

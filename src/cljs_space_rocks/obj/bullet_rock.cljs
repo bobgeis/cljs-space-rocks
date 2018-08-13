@@ -14,7 +14,7 @@
 
 (def dot-number
   "number of particles to make in a rock explosion"
-  15)
+  0)
 
 (defn rock-hit?
   "find a bullet hitting this rock, return nil if none found"
@@ -51,10 +51,10 @@
                (dissoc-fn :id rock)
                 ;; add assoc-fn calls with calves
                (assoc-fn-seq :id (rock/make-calves rock)))
-           (assoc-fn booms :id (boom/obj->boom rock :rock-ex))
+           (assoc-fn booms :id (boom/obj->ex rock))
            (assoc-fn-seq particles :id (particle/make-particles dot-number rock))
            ;; gems aren't always produced
-           (if (< (drand/drand) ((:type rock) rock/type->gem-chance))
+           (if (< (drand/drand) ((:mat rock) rock/mat->gem-chance))
              (assoc-fn loot :id (loot/obj->loot rock :gem))
              loot)
            (update score :rock inc)

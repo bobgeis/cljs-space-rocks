@@ -29,7 +29,7 @@
       (dissoc :player)
       (assoc
        :booms (assoc-fn booms :id
-                        (boom/obj->boom player :rock-ex))
+                        (boom/obj->ex player))
        :particles (assoc-fn-seq particles :id
                                 (particle/make-particles dot-number player))
        :loot (-> loot
@@ -38,7 +38,7 @@
                   (repeatedly (:gem cargo) #(loot/obj->loot player :gem)))
                  (assoc-fn-seq
                   :id
-                  (repeatedly (+ 2 (:pod cargo)) #(loot/obj->loot player :pod))))
+                  (repeatedly (inc (:pod cargo)) #(loot/obj->loot player :pod))))
        :scene-effects (assoc scene-effects
                              :change-mode "gameover"))))
 

@@ -12,15 +12,40 @@
 
 (defn omega-count
   "display the seconds count of the omega-13"
-  [count full? [w h]]
+  [count [w h] omega-left]
   [:p
-   {:style {:color (if full? "#00FF00" "#FF0000")
-            :position "absolute" :font-size "large"
+   {:style {:color (cond
+                     (> count 12) "#00FF99"
+                     (> count 10) "#00FF55"
+                     (> count 8) "#00FF00"
+                     (> count 6) "#55FF00"
+                     (> count 4) "#AAFF00"
+                     (> count 2) "#FFFF00"
+                     :else "#FF0000")
+            :position "absolute" :font-size "15px"
             :top (- h 20) :left (/ w 2)
             :transform "translate(-50%,-100%)"}}
-   (str "\u03A9-" count)])
+   (str "\u03A9-" count)
+   (if omega-left
+     [:span
+      {:style {:color (hsl 150 100 75 0.75)}}
+      (str " -> \u03A9-" omega-left)])])
 
 ;; description text appears in the splash/pause
+
+(defn desc-omega
+  "describe the omega-13"
+  [[w h]]
+  [:div
+   {:style {:position "absolute"
+            :top (- h 25) :left (/ w 2)
+            ; :width "350px"
+            :transform "translate(-50%,-100%)"
+            :font-size "10px" :padding 5
+            :background-color (rgb 0 0 50 0.5)
+            :border-radius "10px"
+            :text-align "center"}}
+   "This is your Omega-13 charge.  Use it to go back in time.  When it's not red, hold the Z key!"])
 
 (defn desc-pods
   "description of lifepod objective"
@@ -30,12 +55,12 @@
             :top (/ h 2) :left (- w 20)
             :width "150px"
             :transform "translate(-100%,-50%)"
-            :font-size "small" :padding 5
+            :font-size "10px" :padding 5
             :background-color (rgb 0 0 50 0.5)
             :border-radius "10px"
             :text-align "center"}}
    [:p "When a ship explodes, there may be life pods."]
-   [:p "Bring any pods you catch to this hospital"]])
+   [:p "Bring any pods you catch to the hospital station in the upper right."]])
 
 (defn desc-gems
   "description of the gem objective"
@@ -45,12 +70,12 @@
             :top (/ h 2) :left 30
             :width "150px"
             :transform "translate(0,-50%)"
-            :font-size "small" :padding 5
+            :font-size "10px" :padding 5
             :background-color (rgb 0 0 50 0.5)
             :border-radius "10px"
             :text-align "center"}}
    [:p "When a rock breaks, it may leave small gems."]
-   [:p "Bring any gems you find to the refinery below."]])
+   [:p "Bring any gems you find to the refinery station in the lower left."]])
 
 (defn desc-controls
   "how do we fly this thing?"
@@ -59,16 +84,17 @@
    {:style {:position "absolute"
             :top (+ 25 (/ h 2)) :left (/ w 2)
             :transform "translate(-50%,0)"
-            :font-size "small" :padding 5
+            :font-size "10px" :padding 5
             :background-color (rgb 0 0 50 0.5)
             :border-radius "10px"
             :text-align "center"}}
-   [:p [:strong "Controls"]]
-   [:p "Arrows to move"]
-   [:p "Space to fire"]
-   [:p "Z to use \u03A9-13"]
-   [:p "P to pause"]
-   [:p "Enter to play!"]])
+   [:strong "Controls:"] [:br] [:br]
+   [:strong "Arrow "] " keys to move" [:br]
+   [:strong "Space"] " to fire" [:br]
+   [:strong "Z"] " to use the \u03A9-13" [:br]
+   [:strong "X"] " to abort the \u03A9-13" [:br]
+   [:strong "P"] " to pause" [:br]
+   [:strong "Enter"] " to play!" [:br]])
 
 (defn desc-splash
   "splash game description"
@@ -77,7 +103,7 @@
    {:style {:position "absolute"
             :top (- (/ h 2) 25) :left (/ w 2)
             :transform "translate(-50%,-100%)"
-            :font-size "small" :padding 5
+            :font-size "12px" :padding 5
             :background-color (rgb 0 0 50 0.5)
             :border-radius "10px"
             :text-align "center"}}
@@ -96,17 +122,16 @@
    {:style {:position "absolute"
             :top (- (/ h 2) 25) :left (/ w 2)
             :transform "translate(-50%,-100%)"
-            :font-size "small" :padding 5
+            :font-size "10px" :padding 5
             :background-color (rgb 0 0 50 0.5)
             :border-radius "10px"
             :text-align "center"}}
-   [:p [:strong "Paused"]]
-   [:p "Goals:"]
-   [:p "Bust rocks"]
-   [:p "Collect gems"]
-  ;  [:p "Protect ships"]
-  ;  [:p "Rescue pods"]
-])
+   [:strong "Paused"] [:br] [:br]
+   "Objectives:" [:br]
+   "Bust rocks" [:br]
+   "Protect ships" [:br]
+   "Collect gems" [:br]
+   "Rescue pods"])
 
 (defn desc-gameover
   "description for when the player has crashed"
@@ -115,14 +140,14 @@
    {:style {:position "absolute"
             :top (- (/ h 2) 25) :left (/ w 2)
             :transform "translate(-50%,-100%)"
-            :font-size "small" :padding 5
+            :font-size "12px" :padding 5
             :background-color (rgb 0 0 50 0.5)
             :border-radius "10px"
             :text-align "center"}}
-   [:p [:strong "You exploded!"]]
-   [:p "If you have \u03A9-13, there is hope;"]
-   [:p "hold 'Z' to go back 13 seconds!"]
-   [:p "Otherwise, press 'Enter' to restart"]])
+   [:p [:strong "Oh no! You exploded!"]]
+   [:p "But if you have enough \u03A9 charge, then there is still hope."]
+   [:p "Hold the 'Z' key to go back in time, and release it to jump to that moment!"]
+   [:p "Otherwise, press 'Enter' to restart."]])
 
 (def mode-desc
   {:pause desc-pause
@@ -153,10 +178,9 @@
             :text-align "center"}}
    [:p [:strong "High Scores"]]
    [:p (str "Most rocks busted:  " rock)]
-  ;  [:p (str "Most ships protected:  " ship)] ;; add these back as they are implemented
+   [:p (str "Most ships protected:  " ship)]
    [:p (str "Most gems delivered:  " gem)]
-  ;  [:p (str "Most pods rescued:  " pod)]
-])
+   [:p (str "Most pods rescued:  " pod)]])
 
 (defn show-score
   "current score"
@@ -168,10 +192,9 @@
             :text-align "center"}}
    [:strong "Score"] [:br]
    (str "Rocks:  " rock) [:br]
-  ;  (str "Ships:  " ship) [:br] ;; add these back as they are implemented
+   (str "Ships:  " ship) [:br]
    (str "Gems:  " gem) [:br]
-  ;  (str "Pods:  " pod)
-])
+   (str "Pods:  " pod)])
 
 (defn show-cargo
   "current ship cargo"
@@ -183,8 +206,7 @@
             :text-align "center"}}
    [:strong "Cargo"] [:br]
    (str "Gems:  " gem) [:br]
-  ;  (str "Pods:  " pod)
-])
+   (str "Pods:  " pod)])
 
 (defn cargo-score
   [cargo score [w h]]

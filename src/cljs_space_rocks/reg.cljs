@@ -3,8 +3,10 @@
   (:require
    [re-frame.core :as rf]
    [helper.browser :as hb]
+   [helper.rf :as hrf]
    [helper.log :refer [clog]]
    [cljs-space-rocks.model :as mod]
+   [cljs-space-rocks.omega :as omega]
    [cljs-space-rocks.misc :as misc]))
 
 
@@ -20,7 +22,7 @@
  :get-win-size
  (fn [cofx]
    (assoc cofx :get-win-size
-          (misc/choose-size js/window.innerWidth js/window.innerHeight))))
+          (misc/choose-svg-size js/window.innerWidth js/window.innerHeight))))
 
 
 ;; reg fx
@@ -92,77 +94,44 @@
    {:log-time msg
     :db db}))
 
-
 ;; reg sub
 
-(rf/reg-sub
- :win-size
- (fn [db _] (:win-size db)))
+;; basic subs
 
-(rf/reg-sub
- :mode
- (fn [db _] (:mode db)))
+(hrf/basic-sub :win-size [:win-size])
+(hrf/basic-sub :mode [:mode])
+(hrf/basic-sub :hiscore [:hiscore])
 
-(rf/reg-sub
- :player
- (fn [db _] (get-in db [:scene :player])))
+(hrf/basic-sub :player [:scene :player])
+(hrf/basic-sub :score [:scene :score])
+(hrf/basic-sub :cargo [:scene :cargo])
 
-(rf/reg-sub
- :bases
- (fn [db _] (get-in db [:scene :bases])))
-
-(rf/reg-sub
- :booms
- (fn [db _] (get-in db [:scene :booms])))
-
-(rf/reg-sub
- :bullets
- (fn [db _] (get-in db [:scene :bullets])))
-
-(rf/reg-sub
- :loot
- (fn [db _] (get-in db [:scene :loot])))
-
-(rf/reg-sub
- :particles
- (fn [db _] (get-in db [:scene :particles])))
-
-(rf/reg-sub
- :rocks
- (fn [db _] (get-in db [:scene :rocks])))
-
-;; score related subs
-
-(rf/reg-sub
- :score
- (fn [db _] (get-in db [:scene :score])))
-
-(rf/reg-sub
- :cargo
- (fn [db _] (get-in db [:scene :cargo])))
-
-(rf/reg-sub
- :hiscore
- (fn [db _] (get-in db [:hiscore])))
+(hrf/basic-sub :bases [:scene :bases])
+(hrf/basic-sub :booms [:scene :booms])
+(hrf/basic-sub :bullets [:scene :bullets])
+(hrf/basic-sub :loot [:scene :loot])
+(hrf/basic-sub :particles [:scene :particles])
+(hrf/basic-sub :rocks [:scene :rocks])
+(hrf/basic-sub :ships [:scene :ships])
 
 ;; omega related subs
 
 (rf/reg-sub
- :omega-trigger
- (fn [db _] (:omega-trigger db)))
+ :omega-seconds
+ (fn [db _] (min 13 (omega/timeline-seconds-db db))))
+
+(rf/reg-sub
+ :omega-seconds-left
+ (fn [db _] (omega/current-second (get-in db [:omega :current]))))
+
+(rf/reg-sub
+ :omega-scene
+ (fn [db _] (omega/current-scene-db db)))
 
 (rf/reg-sub
  :omega-player
- (fn [db _] (mod/get-db-omega-player db)))
+ (fn [db _] (:player (omega/current-scene-db db))))
 
 (rf/reg-sub
  :omega-rocks
- (fn [db _] (mod/get-db-omega-rocks db)))
-
-(rf/reg-sub
- :omega-seconds
- (fn [db _] (mod/get-db-omega-queue-seconds db)))
-
-(rf/reg-sub
- :omega-full?
- (fn [db _] (mod/get-db-omega-queue-full? db)))
+ (fn [db _] (:player (omega/current-scene-db db))))

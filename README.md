@@ -1,7 +1,7 @@
 
 # cljs-space-rocks
 
-This is a learning project made while learning clojurescript.  It's an asteroids clone, because whenever one learns a new language it's fun to make a game in it, and I happen to like asteroids.
+This is a learning project made while learning clojurescript and SVGs.  It's an asteroids clone, because whenever one learns a new language it's fun to make a game in it, and I happen to like asteroids.
 
 [__Play it here__](http://bobgeis.github.io/cljs-space-rocks)
 
@@ -9,8 +9,9 @@ This is a learning project made while learning clojurescript.  It's an asteroids
 
 Keyboard:
 * Arrow keys or WASD to move the player ship.
-* Space or Shift to fire the disintigrator.
-* Z activates the Omega 13.  Once fully charged, the player can go back in time 13 seconds; "Enough time to undo a single mistake."  Note that if it's fully charged and the player ship is destroyed, it remains available.
+* Space or Shift to fire the disintegrator.
+* Z to operate the Omega-13.  Hold Z to show previous states of the timeline, then release to jump to that moment.  You can go back up to 13 seconds in this way. "Enough time to undo one mistake." ~Commander Taggart
+* X to abort a time jump.  That is: if you decide not to jump after all, then press X before releasing Z, and the time jump will not occur.
 * P pauses and unpauses the game.
 * Enter starts the game or restarts the game.
 * Escape, while paused, goes back to the start screen.
@@ -23,8 +24,9 @@ Oh no! Some hooligans are dumping space rocks into Subspace Locus 1457 again!
 
 Luckily, a dedicated rescue and rock-buster ship is already prepped and on site.  That's you!
 
-* Try to keep Subspace Locus 1457 safe for travelers, by busting rocks.
-* Bring any valuable minerals you happen to collect to refinery base in the South West quadrant.
+* Try to keep Subspace Locus 1457 safe for travelers by busting rocks.
+* Bring any escape pods you rescue to the hospital station in the upper right.
+* Bring any valuable minerals you happen to collect to refinery base in the lower left.
 * If you get into a jam or if you have to abandon ship, use the Omega-13 to try again.
 * Good luck!
 
@@ -38,6 +40,10 @@ Download or clone this repo onto your local drive, and cd into the folder contai
 
 For a hot reloading dev server do:
 ```lein figwheel```
+or
+```lein repl```
+and then
+```(start)``
 and open your browser at: http://localhost:3449/index.html
 
 To make a minified version, do:

@@ -14,7 +14,7 @@
   (* pi 2))
 
 (def half-pi
-  "one half pi"
+  "one half pi - 90 degress in radians"
   (/ pi 2))
 
 (def tau
@@ -32,6 +32,23 @@
 (def max-degrees
   "degrees in a circle"
   360)
+
+;; some common trig results
+
+(def sin30
+  (Math/sin (/ half-pi 3)))
+(def cos30
+  (Math/cos (/ half-pi 3)))
+
+(def sin45
+  (Math/sin (/ half-pi 2)))
+(def cos45
+  (Math/cos (/ half-pi 2)))
+
+(def sin60
+  (Math/sin (* 2 (/ half-pi 3))))
+(def cos60
+  (Math/cos (* 2 (/ half-pi 3))))
 
 ;; geometry functions
 
@@ -122,7 +139,8 @@
 
 ;; cartesian to polar conversion
 (defn ra->xy
-  "convert polar coordinates to cartesian,
+  "convert polar coordinates to cartesian.
+  a is in rad
   returns [x y]"
   ([r a]
    [(* r (Math/cos a)) (* r (Math/sin a))])

@@ -1,12 +1,9 @@
 (ns cljs-space-rocks.obj.base-player
   "ns for base-player interactions"
   (:require
-   [com.rpl.specter :as sp]
    [helper.geom :as geom :refer [cc-hit?]]
-   [helper.fun :as fun :refer [assoc-fn assoc-fn-seq dissoc-fn]]
+   [helper.fun :as fun :refer [assoc-fn]]
    [helper.log :refer [clog]]
-   [cljs-space-rocks.drand :as drand]
-   [cljs-space-rocks.misc :as misc :refer [not-NONE]]
    [cljs-space-rocks.obj.base :as base]
    [cljs-space-rocks.obj.player :as player]))
 
@@ -32,9 +29,9 @@
         (not (cc-hit? player base)) (recur cargo score bases (rest base-seq))
         ;; if they are near, then drop off cargo
         :else
-        (let [type (:type base)]
-          (recur (assoc cargo type 0)
-                 (update score type #(+ % (type cargo)))
+        (let [res (:res base)]
+          (recur (assoc cargo res 0)
+                 (update score res #(+ % (res cargo)))
                  (assoc-fn bases :id (assoc base :glow base/glow-max))
                  (rest base-seq)))))))
 

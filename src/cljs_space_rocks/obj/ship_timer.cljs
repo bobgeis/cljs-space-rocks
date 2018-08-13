@@ -1,16 +1,17 @@
-(ns cljs-space-rocks.obj.rock-timer
-  "ns for functions related to the spawning of new rocks"
+(ns cljs-space-rocks.obj.ship-timer
+  "ns for fns etc for spawning of new ships"
   (:require
    [helper.fun :as fun :refer [assoc-fn assoc-fn-seq dissoc-fn floor]]
+   [helper.log :refer [clog]]
    [cljs-space-rocks.drand :as drand]
    [cljs-space-rocks.obj.boom :as boom]
-   [cljs-space-rocks.obj.rock :as rock]))
+   [cljs-space-rocks.obj.ship :as ship]))
 
 ;; constants
 
 (def init-max-roll
   "initial maximum number of ticks between spawns"
-  100)
+  120)
 
 (def init-min-roll
   "initial minimum number of ticks between spawns"
@@ -18,46 +19,44 @@
 
 (def min-max-roll
   "lowest max-roll can go"
-  20)
+  30)
 
 (def min-min-roll
   "lowest min-roll can go"
   (floor (/ min-max-roll 2)))
 
 (def speed-up
-  "factor determining how player ship score increases rock spawn rate
-  formula is: current-max-roll = (max (floor (- r-max (* ship speed-up))) min-max-roll)"
+  "factor which determines ship spawn rate increases with player score
+  formula is: current-max-roll = (max (floor (- r-max (* (+ gem pod) speed-up))) min-max-roll)"
   0.5)
 
 (def num-rolls
   "number of rolls to get the next tick"
   5)
 
-;; helpers
-
-;; model
+;; model / update
 
 (defn update-timer
-  "given a timer, calculate and assoc the next rock"
-  [{:keys [r-min r-max r-num seed] :as timer} {ship :ship}]
+  "given a timer, calculate and assoc the next ship"
+  [{:keys [r-min r-max r-num seed] :as timer} {gem :gem pod :pod}]
   (let [set-seed! (drand/set-seed! seed)
-        current-max-roll (max (floor (- r-max (* ship speed-up))) min-max-roll)
-        current-min-roll (max (floor (- r-min (* ship 0.5 speed-up))) min-min-roll)
+        current-max-roll (max (floor (- r-max (* (+ gem pod) speed-up))) min-max-roll)
+        current-min-roll (max (floor (- r-min (* (+ gem pod) speed-up 0.5))) min-min-roll)
         countdown (apply + (repeatedly r-num #(drand/dint current-min-roll current-max-roll)))
-        rock (rock/make-spawn)
+        ship (ship/make-spawn)
         new-seed (drand/drseed)]
     (assoc timer
            :countdown countdown
-           :rock rock
+           :ship ship
            :seed new-seed)))
 
 (defn create
-  "create a new rock-timer"
+  "create a new ship-timer"
   [seed r-min r-max r-num]
-  (update-timer {:seed seed :r-min r-min :r-max r-max :r-num r-num} {:ship 0}))
+  (update-timer {:seed seed :r-min r-min :r-max r-max :r-num r-num} {:pod 0 :gem 0}))
 
 (defn init-timer
-  "initialize the rock-timer"
+  "initialize the ship-timer"
   [] (create (drand/rrseed) init-min-roll init-max-roll num-rolls))
 
 ;; manipulation
@@ -67,19 +66,21 @@
   (update timer :countdown dec))
 
 (defn tick
-  [{{:keys [countdown rock] :as timer} :rock-timer
-    :keys [rocks booms score] :as scene}]
+  [{{:keys [countdown ship] :as timer} :ship-timer
+    :keys [ships booms score] :as scene}]
   (cond
-    ;; if we're at 0, add rock & reset timer
+    ;; if we're at 0, add ship & reset timer
     (= 0 countdown)
     (assoc scene
-           :rocks (assoc-fn rocks :id rock)
-           :rock-timer (update-timer timer score))
+           :ships (assoc-fn ships :id ship)
+           :ship-timer (update-timer timer score))
     ;; if we're at the flash time, add the flash obj
     (= (::boom/in boom/type->lifetime) countdown)
     (assoc scene
-           :booms (assoc-fn booms :id (boom/obj->in rock))
-           :rock-timer (dec-countdown timer))
+           :booms (assoc-fn booms :id (boom/obj->in ship {:fizzbuzz false}))
+           :ship-timer (dec-countdown timer))
     ;; otherwise add the decremented counter
     :else
-    (assoc scene :rock-timer (dec-countdown timer))))
+    (assoc scene :ship-timer (dec-countdown timer))))
+
+

@@ -31,11 +31,23 @@
   (max 0 (min s maximum)))
 
 (defn inside?
-  "true if any of position s with radius r is within 0->max"
+  "true if any of s+/-r is within 0->max"
   ([s r max]
-   (or (> (- r) s) (< (+ max r) s)))
+   (or (> s (- r)) (< s (+ max r))))
   ([s max]
-   (inside? s max 0)))
+   (inside? s 0 max)))
+
+(defn outside?
+  "true if any of s+/-r is outside 0->max.
+  will be -1 if any is below 0, else 1 if any is above max."
+  ([s r max]
+   (cond
+     (< s r) -1
+     (> s (- max r)) 1
+     :else nil))
+  ([s max]
+   (outside? s 0 max)))
+
 
 (defn mmap
   "map over just the values of a map, producing a new map

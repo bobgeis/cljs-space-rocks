@@ -2,11 +2,13 @@
   "ns for bullet constants and functions"
   (:require
    [com.rpl.specter :as sp]
+   [re-frame.core :as rf]
    [helper.geom :refer [ra->xy deg->rad]]
    [helper.log :refer [clog]]
    [helper.fun :refer [floor]]
    [cljs-space-rocks.id :as id]
-   [cljs-space-rocks.misc :as misc]))
+   [cljs-space-rocks.misc :as misc]
+   [cljs-space-rocks.obj :as obj]))
 
 ;; constants and helpers
 
@@ -33,7 +35,7 @@
   [{:keys [x y vx vy a] :as obj}]
   (let [[ax ay] (ra->xy speed (deg->rad a))]
     {:x (+ x ax) :y (+ y ay) :r radius :life lifetime
-     :vx (+ vx ax) :vy (+ vy ay)
+     :vx (+ vx ax) :vy (+ vy ay) :type ::bullet
      :id (id/get-id)}))
 
 ;; manipulation
@@ -41,10 +43,12 @@
 (defn tick
   "tick one bullet"
   [obj]
-  (if (misc/kill? obj) sp/NONE
+  (if (obj/kill? obj) sp/NONE
       (-> obj
-          (misc/physics)
+          (obj/physics)
           (assoc :life (dec (:life obj))))))
+
+(defmethod obj/tick ::bullet [obj] (tick obj))
 
 ;; view
 
@@ -55,3 +59,5 @@
    {:x1 (floor (- x vx)) :y1 (floor (- y vy))
     :x2 (floor (+ x (* svg-length vx))) :y2 (floor (+ y (* svg-length vy)))
     :stroke "#00ffff" :stroke-width 10}])
+
+(defmethod obj/svg ::bullet [obj] (svg obj))

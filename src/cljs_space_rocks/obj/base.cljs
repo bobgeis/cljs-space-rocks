@@ -1,6 +1,7 @@
 (ns cljs-space-rocks.obj.base
   "ns for functions etc related to the space bases"
   (:require
+   [re-frame.core :as rf]
    [helper.geom :as geom :refer [ra->xy tau]]
    [helper.color :refer [hsl]]
    [helper.svg :as svg :refer [css-transform]]
@@ -8,15 +9,21 @@
    [helper.log :refer [clog]]
    [cljs-space-rocks.id :as id]
    [cljs-space-rocks.drand :as drand]
-   [cljs-space-rocks.misc :as misc :refer [not-NONE]]))
-
+   [cljs-space-rocks.emblem :as emb]
+   [cljs-space-rocks.misc :as misc :refer [not-NONE]]
+   [cljs-space-rocks.obj :as obj]))
 
 ;; constants and helpers
 
 (def types
   "types of bases"
-  {:gem "refinery that accepts valuabel minerals"
-   :pod "hospital that accepts escape pods"})
+  {::gem "refinery that accepts valuable minerals"
+   ::pod "hospital that accepts escape pods"})
+
+(def reses
+  "resource types"
+  {:gem "valuable minerals"
+   :pod "lifepods from exploding ships"})
 
 (def glow-max
   "ticks to go from max to min glow"
@@ -25,8 +32,8 @@
 (def pod-r 300)
 (def gem-r 300)
 (def radius
-  {:gem gem-r
-   :pod pod-r})
+  {::gem gem-r
+   ::pod pod-r})
 
 
 (def pod-va1 2)
@@ -35,46 +42,61 @@
 (def gem-va2 -4)
 
 (def va1
-  {:gem gem-va1
-   :pod pod-va1})
+  {::gem gem-va1
+   ::pod pod-va1})
 
 (def va2
-  {:gem gem-va2
-   :pod pod-va2})
+  {::gem gem-va2
+   ::pod pod-va2})
 
 (def gray (hsl 0 0 30))
 (def lgray (hsl 0 0 55))
 (def dgray (hsl 0 0 20))
 (def llgray (hsl 0 0 75))
 
-(defn svg-emblem-medic
+;; model
+
+(defn create
+  "create a base"
+  [x y a res type]
+  {:x x :y y :a a :type type :res res
+   :r (type radius) :glow 0 :id (id/get-id)
+   :a1 0 :a2 0 :va1 (type va1) :va2 (type va2)})
+
+(defn initial-bases
+  []
+  (assoc-fn
+   {} :id
+   (create 1500 5000 (drand/rangle) :gem ::gem)
+   (create 6500 1500 (drand/rangle) :pod ::pod)))
+
+;; query
+
+;; manipulation
+
+;; update
+
+(defn tick
+  "tick the given base"
+  [obj]
+  (-> obj
+      (obj/physics)
+      (update :glow #(max 0 (dec %)))
+      (update :a1 #(+ % (:va1 obj)))
+      (update :a2 #(+ % (:va2 obj)))))
+
+(defmethod obj/tick ::gem [obj] (tick obj))
+(defmethod obj/tick ::pod [obj] (tick obj))
+
+;; svg
+
+(def svg-emblem-medic
   "medical emblem svg"
-  [r stroke]
-  [:path
-   {:stroke stroke
-    :stroke-width 30
-    :fill "none"
-    :d (sjoin
-        ["M" (- r) 0
-         "L" r 0
-         "M" 0 (- r)
-         "L" 0 r])}])
+  (emb/fat-cross "#FF0000" 0 0 0 (emb/scale 50)))
 
-(defn svg-emblem-miner
+(def svg-emblem-miner
   "the miners emblem svg"
-  [r stroke]
-  [:path
-   {:stroke stroke
-    :stroke-width 15
-    :fill "none"
-    :d (sjoin
-        ["M" (- r) 0
-         "L" 0 r
-         "L" r 0
-         "L" 0 (- r)
-         "L" (- r) 0
-         "L" r 0])}])
-
+  (emb/tee-bar "#0055CC" 0 0 0 (emb/scale 50)))
 
 ; (def gem-r1 (* gem-r 1.5))
 (def gem-r1 gem-r)
@@ -118,7 +140,7 @@
    [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke lgray :stroke-width 80}]
    [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke dim :stroke-width 40}]
    [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke bright :stroke-width 20}]
-   (svg-emblem-miner 50 "#0055CC")])
+   svg-emblem-miner])
 
 
 (defn pod-bottom
@@ -131,52 +153,18 @@
   [:g {:transform (svg/css-rotate a)}
    [:line {:x1 0 :y1 (- 150) :x2 0 :y2 (- pod-r) :stroke-width 30 :stroke llgray}]
    [:line {:x1 0 :y1 150 :x2 0 :y2 pod-r :stroke-width 30 :stroke llgray}]
-   [:ellipse {:cx 0 :cy (- 150) :rx 10 :ry 50 :fill llgray :stroke gray}]
-   [:ellipse {:cx 0 :cy 150 :rx 10 :ry 50 :fill llgray :stroke gray}]])
+   [:ellipse {:cx 0 :cy (- 150) :rx 70 :ry 40 :fill llgray :stroke gray}]
+   [:ellipse {:cx 0 :cy 150 :rx 70 :ry 40 :fill llgray :stroke gray}]])
 
 (defn pod-top
   [bright dim]
   [:g {}
    [:circle {:cx 0 :cy 0 :r 80 :fill lgray :stroke dim}]
-   [:line {:x1 0 :y1 0 :x2 gem-r :y2 0 :stroke lgray :stroke-width 70}]
+   [:line {:x1 0 :y1 0 :x2 gem-r :y2 0 :stroke lgray :stroke-width 140}]
    [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke lgray :stroke-width 80}]
    [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke dim :stroke-width 40}]
    [:circle {:cx 0 :cy 0 :r gem-r :fill "none" :stroke bright :stroke-width 20}]
-   (svg-emblem-medic 50 "#FF0000")])
-
-;; model
-
-(defn create
-  "create a base"
-  [x y a type]
-  {:x x :y y :a a :type type
-   :r (type radius) :glow 0 :id (id/get-id)
-   :a1 0 :a2 0 :va1 (type va1) :va2 (type va2)})
-
-(defn initial-bases
-  []
-  (assoc-fn
-   {} :id
-   (create 1500 5000 (drand/rangle) :gem)
-  ;  (create 6500 1500 (drand/rangle) :pod)
-))
-
-;; query
-
-;; manipulation
-
-;; update
-
-(defn tick
-  "tick the given base"
-  [obj]
-  (-> obj
-      (misc/physics)
-      (update :glow #(max 0 (dec %)))
-      (update :a1 #(+ % (:va1 obj)))
-      (update :a2 #(+ % (:va2 obj)))))
-
-;; svg
+   svg-emblem-medic])
 
 (defn svg-refinery
   [{:keys [x y a1 a2 r glow] :as base}]
@@ -209,6 +197,5 @@
      (pod-middle a2)
      (pod-top bright dim)]))
 
-(defmulti svg :type)
-(defmethod svg :gem [base] (svg-refinery base))
-(defmethod svg :pod [base] (svg-hospital base))
+(defmethod obj/svg ::gem [base] (svg-refinery base))
+(defmethod obj/svg ::pod [base] (svg-hospital base))

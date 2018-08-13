@@ -4,15 +4,14 @@
    [reagent.core :as r]
    [clojure.string :as string]
    [helper.log :refer [clog]]
-   [helper.rf :as hr :refer [<sub >evt]]
+   [helper.rf :as hr :refer [<sub >evt spy]]
    [helper.fun :as hf :refer [sjoin]]
    [helper.browser :as hb]
    [cljs-space-rocks.model :as mod]
    [cljs-space-rocks.misc :as misc]
    [cljs-space-rocks.text :as text]
+   [cljs-space-rocks.obj :as obj]
    [cljs-space-rocks.obj.player :as player]
-   [cljs-space-rocks.obj.base :as base]
-   [cljs-space-rocks.obj.boom :as boom]
    [cljs-space-rocks.obj.bullet :as bullet]
    [cljs-space-rocks.obj.loot :as loot]
    [cljs-space-rocks.obj.particle :as particle]
@@ -25,9 +24,9 @@
   "text of the omega-13 count"
   []
   (let [count (<sub [:omega-seconds])
-        full? (<sub [:omega-full?])
-        size (<sub [:win-size])]
-    (text/omega-count count full? size)))
+        size (<sub [:win-size])
+        omega-left (<sub [:omega-seconds-left])]
+    (text/omega-count count size omega-left)))
 
 (defn text-hiscore
   []
@@ -57,9 +56,14 @@
   (let [size (<sub [:win-size])]
     (text/desc-pods size)))
 
+(defn test-omega-desc
+  []
+  (let [size (<sub [:win-size])]
+    (text/desc-omega size)))
+
 ;; svgs
 
-(defn svg-board-setting
+(defn svg-board-settings
   []
   (let [[w h] (<sub [:win-size])]
     {:style {:width w
@@ -68,71 +72,24 @@
              :background-size "cover"}
      :view-box (sjoin [0 0 misc/xt-box misc/yt-box])}))
 
-
-(defn svg-objs
-  "turn the map of objs into an svg group"
-  [objs svg]
-  (into [:g] (map svg) (vals objs)))
-
-(defn svg-bases
-  "draw the base svgs"
-  []
-  (let [bases (<sub [:bases])]
-    (svg-objs bases base/svg)))
-
-(defn svg-booms
-  "draw the boom svgs"
-  []
-  (let [booms (<sub [:booms])]
-    (svg-objs booms boom/svg)))
-
-(defn svg-bullets
-  "draw the bullet svgs"
-  []
-  (let [bullets (<sub [:bullets])]
-    (svg-objs bullets bullet/svg)))
-
-(defn svg-loot
-  "draw the bullet svgs"
-  []
-  (let [objs (<sub [:loot])]
-    (svg-objs objs loot/svg)))
-
-(defn svg-particles
-  "draw the rock svgs"
-  []
-  (let [particles (<sub [:particles])]
-    (svg-objs particles particle/svg)))
-
-(defn svg-rocks
-  "draw the rock svgs"
-  []
-  (let [rocks (<sub [:rocks])]
-    (svg-objs rocks rock/svg)))
-
 (defn svg-omega-player
-  "draw where the player will go if omega-13 is triggered"
   []
-  (let [trigger (<sub [:omega-trigger])
-        player (<sub [:omega-player])]
-    (if trigger
-      (player/svg-omega-player player (/ trigger misc/omega-13-countdown))
-      [:g])))
+  (let [scene (<sub [:omega-scene])]
+    (if-not scene
+      [:g]
+      (player/svg-omega-player (:player scene)))))
 
 (defn svg-omega-rocks
-  "draw where the rocks will be if omega-13 is triggered"
   []
-  (let [trigger (<sub [:omega-trigger])
-        rocks (<sub [:omega-rocks])]
-    (if trigger
-      (svg-objs rocks rock/svg-omega)
-      [:g])))
+  (let [objs (:rocks (<sub [:omega-scene]))]
+    (if-not objs [:g]
+            (into [:g] (map rock/svg-omega) (vals objs)))))
 
 (defn svg-player
   "draw the player svg"
   []
   (let [player (<sub [:player])]
-    (player/svg-player player)))
+    (obj/svg player)))
 
 ;; svgs by mode
 
@@ -140,30 +97,32 @@
   "top svg"
   []
   [:svg
-   (svg-board-setting)
-   (svg-bases)
-   (svg-loot)
-   (svg-particles)
-   (svg-bullets)
-   (svg-rocks)
+   (svg-board-settings)
+   (obj/sub->svgs :bases)
+   (obj/sub->svgs :loot)
+   (obj/sub->svgs :ships)
+   (obj/sub->svgs :particles)
+   (obj/sub->svgs :bullets)
+   (obj/sub->svgs :rocks)
    (svg-player)
    (svg-omega-player)
    (svg-omega-rocks)
-   (svg-booms)])
+   (obj/sub->svgs :booms)])
 
 (defn svg-board-gameover-mode
   "top svg"
   []
   [:svg
-   (svg-board-setting)
-   (svg-bases)
-   (svg-loot)
-   (svg-particles)
-   (svg-bullets)
-   (svg-rocks)
+   (svg-board-settings)
+   (obj/sub->svgs :bases)
+   (obj/sub->svgs :loot)
+   (obj/sub->svgs :ships)
+   (obj/sub->svgs :particles)
+   (obj/sub->svgs :bullets)
+   (obj/sub->svgs :rocks)
    (svg-omega-player)
    (svg-omega-rocks)
-   (svg-booms)])
+   (obj/sub->svgs :booms)])
 
 ;; views by mode
 
@@ -171,7 +130,6 @@
   []
   [:div
    (svg-board-play-mode)
-  ;  (text-cargo)
    (text-cargo-score)
    (text-omega-count)])
 
@@ -180,7 +138,6 @@
   [:div
    (svg-board-gameover-mode)
    (text-descriptions :gameover)
-  ;  (text-score)
    (text-cargo-score)
    (text-hiscore)
    (text-omega-count)])
@@ -190,8 +147,6 @@
   [:div
    (svg-board-play-mode)
    (text-descriptions :pause)
-  ;  (text-cargo)
-  ;  (text-score)
    (text-cargo-score)
    (text-hiscore)
    (text-omega-count)])
@@ -202,10 +157,10 @@
    (svg-board-play-mode)
    (text-descriptions :splash)
    (text-gems)
-  ;  (text-pods)
+   (text-pods)
    (text-omega-count)
-  ;  (text-cargo)
-  ;  (text-score)
+   (test-omega-desc)
+   (text-cargo-score)
    (text-hiscore)])
 
 ;; mode->view map

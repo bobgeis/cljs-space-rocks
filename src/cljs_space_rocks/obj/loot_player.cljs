@@ -13,7 +13,7 @@
 
 (defn inc-cargo
   [cargo item]
-  (update cargo (:type item) inc))
+  (update cargo (:res item) inc))
 
 ;; interact!
 

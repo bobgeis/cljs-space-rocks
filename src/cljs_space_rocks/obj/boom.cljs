@@ -1,50 +1,43 @@
 (ns cljs-space-rocks.obj.boom
   "ns for 'boom' functions and constants.
-  Booms are circular visual effects produced by explosions or FTL jumps."
+  Booms are circular visual effects produced by explosions."
   (:require
    [com.rpl.specter :as sp]
+   [re-frame.core :as rf]
    [helper.fun :as fun :refer [assoc-fn floor]]
    [helper.color :refer [hsl]]
+   [helper.rf :as hr :refer [<sub >evt spy]]
    [helper.log :refer [clog]]
    [cljs-space-rocks.misc :as misc]
-   [cljs-space-rocks.id :as id]))
+   [cljs-space-rocks.id :as id]
+   [cljs-space-rocks.obj :as obj]))
 
 
 ;; constants
 
 (def types
-  {:rock-ex "a rock exploding"
-   :rock-in "a rock being dropped into the zone"
-   :ship-ex "a ship exploding"
-   :ship-in "a ship FTLing into the zone"})
+  {::ex "an explosion"
+   ::in "a flash in"
+   ::out "a flash out"})
 
 (def type->lifetime
   "lifetime of the boom (ticks)"
-  {:rock-ex 13
-   :rock-in 10
-   :ship-ex 15
-   :ship-in 10
-   :long-life 10000})
-
-(def outer-radii
-  "radii of the outer edge of the boom (px)"
-  {:rock-ex 600
-   :rock-in 400
-   :ship-ex 400
-   :ship-in 300})
+  {::ex 13
+   ::in 60
+   ::out 20
+   ::long-life 10000})
 
 (def type->dr
   "change in radius of boom"
-  {:rock-ex 50
-   :rock-in 20
-   :ship-ex 30
-   :ship-in 20
-   :long-life 0})
+  {::ex 50
+   ::in -20
+   ::out 40
+   ::long-life 0})
 
 ;; helpers
 
-(defn get-color-ex
-  "choose the color given the life ratio"
+(defn get-fill-ex
+  "get the fill color for ::ex given the life ratio"
   [ratio]
   (hsl
    (* ratio 60)
@@ -52,20 +45,14 @@
    (+ 40 (* ratio 60))
    (+ 0.5 (/ ratio 2))))
 
-(defn get-color-in
+(defn get-fill-in
+  "get the fill color for ::in"
   [ratio]
   (hsl
-   (- 240 (* ratio 60))
+   200
    100
-   (+ 40 (* ratio 60))
-   (+ 0.5 (/ ratio 2))))
-
-(def type->get-color
-  {:rock-ex get-color-ex
-   :rock-in get-color-in
-   :ship-ex get-color-ex
-   :ship-in get-color-in
-   :long-life get-color-ex})
+   (- 100 (* 60 ratio))
+   (fun/square (- 1 ratio))))
 
 ;; model
 
@@ -75,45 +62,69 @@
   {:x x :y y :vx vx :vy vy :r r
    :type type :id (id/get-id)
    :dr (type type->dr)
-   :life (type type->lifetime)})
+   :life (type type->lifetime)
+   :fizzbuzz true})
 
-(defn obj->boom
-  "create a boom from an obj"
-  [{:keys [x y vx vy r] :as obj} type]
-  (create x y 0 0 r type))
+(defn obj->ex
+  "create a explosion from an obj"
+  ([{:keys [x y vx vy r] :as obj}]
+   (create x y 0 0 r ::ex)))
+
+(defn obj->in
+  "create a FTL arrival flash from an obj"
+  ([{:keys [x y r]}]
+   (let [dr (::in type->dr) life (::in type->lifetime)]
+     (create x y 0 0 (- r (* dr life)) ::in)))
+  ([obj opts]
+   (merge (obj->in obj) opts)))
+
+(defn obj->out
+  "create an FTL exit flash from an obj"
+  ([{:keys [x y r]}]
+   (create x y 0 0 r ::out))
+  ([obj opts]
+   (merge (obj->out obj) opts)))
 
 (defn initial-booms
-  "create some initial booms for testing"
+  "the initial booms map"
   []
   {})
-  ; (assoc-fn
-  ;  {} :id
-  ;  (create 50 50 0 0 100 :long-life)))
 
 ;; query
-
-(defn kill?
-  "a boom should be removed if its life is 0"
-  [obj]
-  (= 0 (:life obj)))
 
 ;; manipulation
 
 (defn tick
-  "tick one object"
   [obj]
-  (if (kill? obj) sp/NONE
+  (if (obj/kill? obj) sp/NONE
       (-> obj
-          (misc/physics)
+          (obj/physics)
           (update :r #(+ % (:dr obj)))
           (update :life dec))))
 
+(defmethod obj/tick ::ex [obj] (tick obj))
+(defmethod obj/tick ::in [obj] (tick obj))
+(defmethod obj/tick ::out [obj] (tick obj))
+
 ;; view
 
-(defn svg
-  "make an svg for the given boom"
+(defmethod obj/svg ::ex
   [{:keys [x y a r type life] :as obj}]
   [:circle
    {:cx (floor x) :cy (floor y) :r (floor r)
-    :fill ((type type->get-color)
-           (/ life (type type->lifetime)))}])
+    :fill (get-fill-ex
+           (/ life (::ex type->lifetime)))}])
+
+(defmethod obj/svg ::in
+  [{:keys [x y a r type life] :as obj}]
+  [:circle
+   {:cx (floor x) :cy (floor y) :r (floor r)
+    :fill (get-fill-in (/ life (type type->lifetime)))
+    :stroke-width 10}])
+
+(defmethod obj/svg ::out
+  [{:keys [x y a r type life] :as obj}]
+  [:circle
+   {:cx (floor x) :cy (floor y) :r (floor r)
+    :fill (get-fill-in (- 1 (/ life (type type->lifetime))))
+    :stroke-width 10}])
