@@ -39,7 +39,6 @@
   [:div
    {:style {:position "absolute"
             :top (- h 25) :left (/ w 2)
-            ; :width "350px"
             :transform "translate(-50%,-100%)"
             :font-size "10px" :padding 5
             :background-color (rgb 0 0 50 0.5)
@@ -164,7 +163,6 @@
      (desc-controls size)]))
 
 ;; score related
-
 
 (defn hiscore
   "hiscore"

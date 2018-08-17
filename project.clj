@@ -1,4 +1,4 @@
-(defproject cljs-space-rocks "0.1.0"
+(defproject cljs-space-rocks "0.2.0"
   :description "Asteroids in clojure script with SVGs"
   :url "https://github.com/bobgeis"
   :license {:name "Eclipse Public License"
@@ -10,7 +10,6 @@
 
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.10.238"]
-                 [org.clojure/core.async  "0.4.474"]
                  [reagent "0.8.1"]
                  [re-frame "0.10.5"]
                  [com.rpl/specter "1.1.1"]

@@ -10,6 +10,7 @@
    [cljs-space-rocks.model :as mod]
    [cljs-space-rocks.misc :as misc]
    [cljs-space-rocks.text :as text]
+   [cljs-space-rocks.save :as save]
    [cljs-space-rocks.obj :as obj]
    [cljs-space-rocks.obj.player :as player]
    [cljs-space-rocks.obj.bullet :as bullet]
@@ -56,10 +57,24 @@
   (let [size (<sub [:win-size])]
     (text/desc-pods size)))
 
-(defn test-omega-desc
+(defn text-omega-desc
   []
   (let [size (<sub [:win-size])]
     (text/desc-omega size)))
+
+;; save
+
+(defn save-button
+  []
+  (let [size (<sub [:win-size])]
+    (save/button-panel save/save-button size)))
+
+(defn load-button
+  []
+  (let [size (<sub [:win-size])
+        exists (<sub [:save-exists])]
+    (if-not exists [:div]
+            (save/button-panel save/load-and-clear-button size))))
 
 ;; svgs
 
@@ -149,7 +164,8 @@
    (text-descriptions :pause)
    (text-cargo-score)
    (text-hiscore)
-   (text-omega-count)])
+   (text-omega-count)
+   (save-button)])
 
 (defn view-splash-mode
   []
@@ -159,9 +175,10 @@
    (text-gems)
    (text-pods)
    (text-omega-count)
-   (test-omega-desc)
+   (text-omega-desc)
    (text-cargo-score)
-   (text-hiscore)])
+   (text-hiscore)
+   (load-button)])
 
 ;; mode->view map
 

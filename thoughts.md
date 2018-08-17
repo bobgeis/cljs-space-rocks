@@ -91,13 +91,13 @@ So I've made very similar asteroids games in three different functional language
 
 ## To Do
 
-* Game saves?
-
 * Low graphics mode to possibly improve performance on slow browsers/machines.
 
 * Code cleaning
 
 * Tests & CI
+
+* Spec
 
 * Helper boats?
 

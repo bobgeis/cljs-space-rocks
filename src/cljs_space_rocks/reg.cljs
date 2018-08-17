@@ -7,6 +7,7 @@
    [helper.log :refer [clog]]
    [cljs-space-rocks.model :as mod]
    [cljs-space-rocks.omega :as omega]
+   [cljs-space-rocks.save :as save]
    [cljs-space-rocks.misc :as misc]))
 
 
@@ -51,14 +52,15 @@
 
 (rf/reg-event-fx
  :init
- [(rf/inject-cofx :get-local-store "cljs-space-rocks")
-  (rf/inject-cofx :get-win-size)]
+ [(rf/inject-cofx :get-local-store misc/ls-score-key)
+  (rf/inject-cofx :get-win-size)
+  (rf/inject-cofx :load-scene)]
  (fn [cofx _]
-   (mod/init-app-state (:db cofx) (:get-local-store cofx) (:get-win-size cofx))))
+   (mod/init-app-state (:db cofx) (:get-local-store cofx) (:get-win-size cofx) (:load-scene cofx))))
 
 (rf/reg-event-fx
  :sync-local-score
- [(rf/inject-cofx :get-local-store "cljs-space-rocks")]
+ [(rf/inject-cofx :get-local-store misc/ls-score-key)]
  (fn [cofx _]
    (mod/sync-local-score (:db cofx) (:get-local-store cofx))))
 

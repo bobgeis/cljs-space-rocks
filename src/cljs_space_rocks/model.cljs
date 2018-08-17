@@ -44,6 +44,7 @@
    {:mode :splash
     :omega omega/initial-omega
     :hiscore {}
+    :save-exists nil
     :win-size [(/ misc/xt-box 10) (/ misc/yt-box 10)]
     :scene {:player (player/initial-player) ;; player is a map of player-ship data
            ;; bases through ships are maps of multiple of that type of object
@@ -66,18 +67,21 @@
             :ship-timer (ship-timer/init-timer)
            ;; effects are changes in the scene that affect the larger game state
             :effects {}}})
-  ([{hiscore :hiscore win-size :win-size}]
-   (assoc (init-state) :hiscore hiscore :win-size win-size)))
+  ([{hiscore :hiscore win-size :win-size save-exists :save-exists}]
+   (assoc (init-state)
+          :hiscore hiscore
+          :win-size win-size
+          :save-exists (if save-exists :true))))
 
 (defn init-app-state
   "initialize the app state"
-  [db ls-score size]
-  {:db (init-state {:hiscore ls-score :win-size size})})
+  [db ls-score size save-exists]
+  {:db (init-state {:hiscore ls-score :win-size size :save-exists save-exists})})
 
 (defn sync-local-score
   "update the local-store's hiscore"
   [{hiscore :hiscore} ls-score]
-  {:set-local-store ["cljs-space-rocks" (merge-with max ls-score hiscore)]})
+  {:set-local-store [misc/ls-score-key (merge-with max ls-score hiscore)]})
 
 ;; query
 
@@ -253,7 +257,7 @@
 (defn init-state-cofx
   [{db :db}]
   {:db (init-state db)
-   :set-local-store ["cljs-space-rocks" (:hiscore db)]})
+   :set-local-store [misc/ls-score-key (:hiscore db)]})
 
 (defn no-op
   "given cofx, return {:db db}"
@@ -299,7 +303,7 @@
 (defn wipe-hiscores-cofx
   [{db :db}]
   {:db (dissoc db :hiscore)
-   :clear-local-store "cljs-space-rocks"})
+   :clear-local-store misc/ls-score-key})
 
 (defn set-window-size-cofx
   [{db :db size :get-win-size :as cofx}]

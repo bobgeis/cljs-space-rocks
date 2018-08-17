@@ -174,3 +174,7 @@
   ([]
    (drand-edge-point (dr-direction))))
 
+;; local-store
+
+(def ls-score-key "cljs-space-rocks")
+

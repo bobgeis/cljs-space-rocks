@@ -17,6 +17,7 @@ Keyboard:
 * Escape, while paused, goes back to the start screen.
 * U resets the high score.
 * L logs the game state to the js console (for debugging).
+* While the game is paused, there will be a button in the lower right that will save the current gamestate to local storage.  This save can be accessed by a similar button that will be visible next time the page is loaded.
 
 ## Objectives
 
