@@ -133,20 +133,25 @@
 ;; glow colors
 
 (defn get-glow-bright
-  "get the brighter color for the engine glow"
-  [ratio]
-  (hsl
-   180
-   (+ 60 (* 40 ratio))
-   (+ 50 (* 40 ratio))))
+  "get the brighter color for the engine glow.
+  ratio is 0-1 and hue is an hsl hue 0-360 0 red, 120 green, 240 blue"
+  ([ratio]
+   (get-glow-bright ratio 180))
+  ([ratio hue]
+   (hsl
+    hue
+    (+ 60 (* 40 ratio))
+    (+ 50 (* 50 ratio)))))
 
 (defn get-glow-dim
   "get the dimmer color for the engine glow"
-  [ratio]
-  (hsl
-   200
-   (+ 40 (* 40 ratio))
-   (+ 40 (* 40 ratio))))
+  ([ratio hue]
+   (hsl
+    hue
+    (+ 40 (* 40 ratio))
+    (+ 30 (* 40 ratio))))
+  ([ratio]
+   (get-glow-dim ratio 200)))
 
 ;; specter
 

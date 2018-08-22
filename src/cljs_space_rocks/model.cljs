@@ -6,7 +6,7 @@
    [helper.log :refer [clog]]
    [helper.rf :refer [spy]]
    [helper.browser :as hb]
-   [helper.fun :as fun :refer [assoc-fn floor]]
+   [helper.fun :as fun :refer [assoc-fn assoc-fn-seq floor]]
    [cljs-space-rocks.misc :as misc]
    [cljs-space-rocks.omega :as omega]
    [cljs-space-rocks.obj :as obj]
@@ -112,14 +112,22 @@
   [scene]
   (update scene :player player/set-neutral))
 
+(defn fire-bullets
+  "maybe have the player fire bullets"
+  [{{reload :reload firing :firing :as player} :player
+    bullets :bullets :as scene}]
+  (if (player/fire? player)
+    (assoc scene :bullets (assoc-fn-seq bullets :id (bullet/fire-bullets player)))
+    scene))
+
 (defn self-updates
   "apply physics, lifetime, etc"
   [{{reload :reload firing :firing :as player} :player :as scene}]
   (assoc scene
          :bases (obj/tick-all (:bases scene))
-         :bullets (cond-> (:bullets scene)
-                    true (obj/tick-all)
-                    (player/fire? player) (assoc-fn :id (bullet/create player)))
+         :bullets (obj/tick-all (:bullets scene))
+                    ; true (obj/tick-all)
+                    ; (player/fire? player) (assoc-fn :id (bullet/create player)))
          :booms (obj/tick-all (:booms scene))
          :loot (obj/tick-all (:loot scene))
          :particles (obj/tick-all (:particles scene))
@@ -169,6 +177,7 @@
   (-> scene
       (inc-tick)
       (self-updates)
+      (fire-bullets)
       (player-update)
       (baseplay/interact)
       (bullrock/interact)

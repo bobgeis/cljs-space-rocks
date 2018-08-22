@@ -199,7 +199,15 @@
 
 ;; update
 
-;; default defmethod is okay
+(defn tick
+  "tick one rock"
+  [obj]
+  (-> obj
+      transient
+      (obj/physics!)
+      persistent!))
+
+(defmethod obj/tick ::rock [obj] (tick obj))
 
 ;; view
 

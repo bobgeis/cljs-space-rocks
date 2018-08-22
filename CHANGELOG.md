@@ -1,6 +1,11 @@
 
 This is a learning project, so take the "versions" with a grain of salt.
 
+## [0.2.1]
+
+* Added powerups triggered by delivering loot to a base.  The refinery gives a rapid shot and the hospital gives a spread shot.
+
+
 ## [0.2.0] 2018-08-16
 
 * Added the ability to save and load games using local storage.  To save, pause a running game with P or Enter.  To load a game, reload or return the splash screen.  In both cases, there should be buttons in the lower right section of the play area that say "Save Current Game", "Load Saved Game" and "Clear Saved Game".

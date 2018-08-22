@@ -29,7 +29,7 @@
 (defn apply-drag
   "apply velocity drag"
   [v d]
-  (* v (- 1 d)))
+  (* v (- 1 (or d 0))))
 
 ;; physics
 
@@ -45,6 +45,19 @@
            :vx (apply-drag (+ vx ax) drag)
            :vy (apply-drag (+ vy ay) drag))))
 
+(defn physics!
+  "as physics but takes and returns a transient"
+  [{:keys [x vx y vy a va acc drag clamp] :or {:a 0 :va 0 :drag 0 :clamp false} :as obj}]
+  (let [[ax ay] (if (and acc a) (ra->xy acc (deg->rad a)) [0 0])
+        edge (if clamp fun/clamp fun/wrap)]
+    (assoc! obj
+            :x (edge (+ x vx ax) max-x)
+            :y (edge (+ y vy ay) max-y)
+            :a (fun/wrap (+ a va) max-degrees)
+            :vx (apply-drag (+ vx ax) drag)
+            :vy (apply-drag (+ vy ay) drag))))
+
+
 ;; update
 
 (defmulti tick "update an object map by one tick" :type)
@@ -59,7 +72,7 @@
 ;; view
 
 (defmulti svg "get the svg for one game object" :type)
-(defmethod svg :default [& args] (clog "default svg") [:g])
+(defmethod svg :default [& args] (clog ["default svg" args]) [:g])
 
 (defn fizzbuzz-svg
   "draw the svg multiple times for objects at the edges and corners"

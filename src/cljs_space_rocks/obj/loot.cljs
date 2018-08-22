@@ -58,8 +58,10 @@
   [obj]
   (if (obj/kill? obj) sp/NONE
       (-> obj
-          (obj/physics)
-          (update :life dec))))
+          transient
+          (obj/physics!)
+          (assoc! :life (dec (:life obj)))
+          persistent!)))
 
 (defmethod obj/tick ::gem [obj] (tick obj))
 (defmethod obj/tick ::pod [obj] (tick obj))

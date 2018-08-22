@@ -88,8 +88,12 @@ So I've made very similar asteroids games in three different functional language
 
 * SVG path elements are extremely flexible! The MDN documentation is very good. [path elements](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/path) and the [d attribute](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d).  Positioning text within an SVG is doable, but I found it to be a bit of a hassle.
 
+* Functions involving transients were getting full of nulls for some reason (js nulls that is, not clojure nils).  It appears that getting things out of transients is different than getting things out of persistent maps.  (:z {:x 1 :y}) -> nil for persistent maps, but it was doing something else for transients in cljs.
+
 
 ## To Do
+
+* Load saved game by default
 
 * Low graphics mode to possibly improve performance on slow browsers/machines.
 
@@ -97,7 +101,11 @@ So I've made very similar asteroids games in three different functional language
 
 * Tests & CI
 
+* See if transients can improve update performance
+
 * Spec
+
+* Sound effects
 
 * Helper boats?
 

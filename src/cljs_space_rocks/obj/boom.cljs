@@ -98,9 +98,11 @@
   [obj]
   (if (obj/kill? obj) sp/NONE
       (-> obj
-          (obj/physics)
-          (update :r #(+ % (:dr obj)))
-          (update :life dec))))
+          transient
+          (obj/physics!)
+          (assoc! :r (+ (:r obj) (:dr obj)))
+          (assoc! :life (dec (:life obj)))
+          persistent!)))
 
 (defmethod obj/tick ::ex [obj] (tick obj))
 (defmethod obj/tick ::in [obj] (tick obj))

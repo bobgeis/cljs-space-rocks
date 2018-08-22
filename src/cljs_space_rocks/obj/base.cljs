@@ -80,10 +80,11 @@
   "tick the given base"
   [obj]
   (-> obj
-      (obj/physics)
-      (update :glow #(max 0 (dec %)))
-      (update :a1 #(+ % (:va1 obj)))
-      (update :a2 #(+ % (:va2 obj)))))
+      transient
+      (assoc! :glow (max 0 (dec (:glow obj))))
+      (assoc! :a1 (+ (:a1 obj) (:va1 obj)))
+      (assoc! :a2 (+ (:a2 obj) (:va2 obj)))
+      persistent!))
 
 (defmethod obj/tick ::gem [obj] (tick obj))
 (defmethod obj/tick ::pod [obj] (tick obj))
@@ -96,7 +97,7 @@
 
 (def svg-emblem-miner
   "the miners emblem svg"
-  (emb/tee-bar "#0055CC" 0 0 0 (emb/scale 50)))
+  (emb/tee-bar "#FABA00" 0 0 0 (emb/scale 50)))
 
 ; (def gem-r1 (* gem-r 1.5))
 (def gem-r1 gem-r)

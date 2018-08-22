@@ -34,7 +34,7 @@
           {:db (assoc db :scene scene :omega omega/initial-omega)}))
 
 (defn clear-cofx [{db :db} _]
-  {:db db
+  {:db (assoc db :save-exists nil)
    :delete-save :true})
 
 ;; reg-cofx

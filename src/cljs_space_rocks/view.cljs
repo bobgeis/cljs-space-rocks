@@ -10,6 +10,7 @@
    [cljs-space-rocks.model :as mod]
    [cljs-space-rocks.misc :as misc]
    [cljs-space-rocks.text :as text]
+   [cljs-space-rocks.emblem :as emb]
    [cljs-space-rocks.save :as save]
    [cljs-space-rocks.obj :as obj]
    [cljs-space-rocks.obj.player :as player]
@@ -122,7 +123,9 @@
    (svg-player)
    (svg-omega-player)
    (svg-omega-rocks)
-   (obj/sub->svgs :booms)])
+   (obj/sub->svgs :booms)
+  ;  (emb/test-view)  ;; for testing
+])
 
 (defn svg-board-gameover-mode
   "top svg"

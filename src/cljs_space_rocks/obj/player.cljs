@@ -36,7 +36,9 @@
 
 (def player-reload
   "how long (ticks) to reload the cannon between shots"
-  6)
+  {:blue 6
+   :red 6
+   :gold 2})
 
 (def player-max-glow
   "number of ticks maximum glow lasts"
@@ -56,6 +58,11 @@
 
 ;; helpers
 
+(def bullet-type->hue
+  {:blue 180
+   :red 300
+   :gold 60})
+
 ;; model
 
 (defn initial-player
@@ -74,7 +81,11 @@
    :reload 0
    :firing false
    :type ::player
-   :fizzbuzz true})
+   :fizzbuzz true
+   :bullet-type :blue
+  ;  :bullet-type :red
+  ;  :bullet-type :gold
+   :powerup-ticks nil})
 
 ;; manipulation
 
@@ -112,30 +123,42 @@
   [{reload :reload firing :firing}]
   (and (= 0 reload) firing))
 
-(defn tick-reload
+(defn tick-reload!
   "update the reload for this tick"
-  [{reload :reload :as player}]
-  (if (fire? player)
-    player-reload
-    (max 0 (dec reload))))
+  [{reload :reload bullet-type :bullet-type :as player}]
+  (assoc! player :reload
+          (if (fire? player)
+            (bullet-type player-reload)
+            (max 0 (dec reload)))))
 
-(defn tick-glow
+(defn tick-glow!
   "update the glow for this tick"
   [{:keys [glow acc va] :as ship}]
+  (assoc! ship :glow
+          (cond
+            (fire? ship) (max (dec glow) glow-fire)
+            (not= 0 acc) (max (dec glow) glow-thrust)
+            (not= 0 va) (max (dec glow) glow-turn)
+            :else (max 0 (dec glow)))))
+
+(defn tick-powerup!
+  "update the powerup state of the player ship for this tick"
+  [{:keys [bullet-type powerup-ticks] :as player}]
   (cond
-    (fire? ship) (max (dec glow) glow-fire)
-    (not= 0 acc) (max (dec glow) glow-thrust)
-    (not= 0 va) (max (dec glow) glow-turn)
-    :else (max 0 (dec glow))))
+    (not powerup-ticks) player
+    (= 0 powerup-ticks) (assoc! player :powerup-ticks nil :bullet-type :blue)
+    :else (assoc! player :powerup-ticks (dec powerup-ticks))))
 
 (defn tick
   "progress the ship one tick"
   [ship]
   (-> ship
-      (obj/physics)
-      (assoc
-       :glow (tick-glow ship)
-       :reload (tick-reload ship))))
+      transient
+      (obj/physics!)
+      (tick-glow!)
+      (tick-reload!)
+      (tick-powerup!)
+      persistent!))
 
 (defmethod obj/tick ::player [obj] (tick obj))
 
@@ -179,14 +202,16 @@
 
 (defn svg-player
   "svg group for the player ship"
-  [{:keys [x y a glow r] :as player}]
+  [{:keys [x y a glow r bullet-type] :as player}]
   (let [ratio (/ glow player-max-glow)
-        bright (misc/get-glow-bright ratio)
-        dim (misc/get-glow-dim ratio)]
+        hue (bullet-type bullet-type->hue)
+        bright (misc/get-glow-bright ratio hue)
+        dim (misc/get-glow-dim ratio hue)]
     [:g {:transform (css-transform player)}
      player-body-path
-    ;  player-emblem-path
      (emb/fat-cross "#FF0000" (/ r 2) 0 0 (emb/scale (/ r 3)))
+     ;; for testing
+    ;  (emb/shield "#FF0000" (/ r 2) 0 0 (emb/scale (/ r 3)))
     ;  (emb/orbitals "#FF0000" (/ r 2) 0 0 (emb/scale (/ r 3)))
     ;  (emb/tee-bar "#FF0000" (/ r 2) 0 0 (emb/scale (/ r 3)))
      (player-one-engine-path player-radius 1 bright dim)

@@ -19,8 +19,9 @@
 (def factions
   {:med "medical vessel, transporting medicine, doctors, and/or patients"
    :min "ore freighter, containing valuable gems"
-   :civ "civilian passenger ship"
-   :sci "science or exploratory vessel"})
+   :civ "civilian passenger liner"
+   :sci "science or exploratory vessel"
+   :pol "polis security"})
 
 (def radius
   "ship radius in svg units"
@@ -36,21 +37,24 @@
 (def hull-colors
   "ship colors"
   {:med "#FFFFFF"
-   :min "#C8C8C8"
+   :min "#F0F0F0"
    :civ "#FAFAFA"
-   :sci "#FFFFFF"})
+   :sci "#FFFFFF"
+   :pol "#D9D9D9"})
 
 (def trim-colors
   {:med "#FF0000"
-   :min "#0000FF"
+   :min "#FABA00"
    :civ "#FA00FA"
-   :sci "#009696"})
+   :sci "#009696"
+   :pol "#0000FF"})
 
 (def emblems
   {:med (emb/fat-cross "#FF0000" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))
-   :min (emb/tee-bar "#0000FF" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))
+   :min (emb/tee-bar "#FABA00" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))
    :civ (emb/pipe-triangle "#FA00FA" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))
-   :sci (emb/orbitals "#009696" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))})
+   :sci (emb/orbitals "#009696" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))
+   :pol (emb/shield "#0000FF" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))})
 
 (def spawn-fac
   "vec of faction keywords to choose with rand nth"
@@ -64,6 +68,8 @@
    :min
    :min
    :min
+   :pol
+   :pol
    :sci
    :sci])
 
@@ -72,15 +78,16 @@
   "vectors of loot for each fac type"
   {:civ [:pod :pod :pod]
    :min [:pod :gem :gem]
-   :sci [:pod :pod :gem]
-   :med [:pod :pod :pod]})
+   :sci [:pod :gem :pod]
+   :med [:pod :pod :pod]
+   :pol [:pod :pod :pod]})
 
 ;; model / creation
 
 (defn create
   "create a ship from args"
   [x y a vx vy fac seed]
-  {:x x :y y :a a :vx vx :vy vy :r radius
+  {:x x :y y :a a :vx vx :vy vy :va 0 :r radius
    :fac fac :seed seed :id (id/get-id)
    :type ::ship :glow max-glow :clamp true})
 
@@ -133,8 +140,12 @@
 (defmethod obj/tick ::ship
   [{:keys [glow] :as ship}]
   (-> ship
-      obj/physics
-      (assoc :glow (if (= glow 0) max-glow (dec glow)))))
+      transient
+      obj/physics!
+      (assoc! :glow (if (= glow 0) max-glow (dec glow)))
+      persistent!
+      ;
+))
 
 ;; view
 

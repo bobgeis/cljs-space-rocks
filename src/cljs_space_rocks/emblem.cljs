@@ -129,6 +129,26 @@
   ([color x y a s]
    (pipe-triangle color (css-transform x y a s))))
 
+;; shield
+
+(def shield-path
+  (sjoin
+   ["M" 400 400
+    "V" -400
+    "H" 0
+    "L" -400 0
+    "L" 0 400
+    "Z"]))
+
+(defn shield
+  ([color transform]
+   [:path
+    {:transform transform
+     :fill color
+     :d shield-path}])
+  ([color x y a s]
+   (shield color (css-transform x y a s))))
+
 ;; test view
 
 (defn test-view
@@ -142,5 +162,6 @@
   ;  (fat-cross "#0000FF" (css-transform 0 0 0 1))
   ;  (tee-bar "#0000FF" (css-transform 0 0 0 1))
   ;  (orbitals "#0000FF" (css-transform 0 0 0 1))
+   (shield "#0000FF" (css-transform 0 0 0 1))
    ;;
 ])
