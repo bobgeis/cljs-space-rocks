@@ -103,7 +103,7 @@
 (def clear-button
   [:input
    {:type "button"
-    :value "Clear Saved Game"
+    :value "Delete Saved Game"
     :style {:background-color (rgb 75 0 0)
             :color (rgb 255 255 255)
             :border-radius "10px" :padding 5}

@@ -17,7 +17,7 @@ Keyboard:
 * Escape, while paused, goes back to the start screen.
 * U resets the high score.
 * L logs the game state to the js console (for debugging).
-* While the game is paused, there will be a button in the lower right that will save the current gamestate to local storage.  This save can be accessed by a similar button that will be visible next time the page is loaded.
+* While the game is paused, there will be a button in the lower right that will save the current game to local storage.  Next time the page is loaded, the saved game will be restored.
 
 ## Objectives
 
@@ -26,8 +26,8 @@ Oh no! Some hooligans are dumping space rocks into Subspace Locus 1457 again!
 Luckily, a dedicated rescue and rock-buster ship is already prepped and on site.  That's you!
 
 * Try to keep Subspace Locus 1457 safe for travelers by busting rocks.
-* Bring any escape pods you rescue to the hospital station in the upper right.
-* Bring any valuable minerals you happen to collect to refinery base in the lower left.
+* Bring any escape pods you rescue to the hospital station in the upper right.  You will be rewarded with a temporary enhancement to your rock buster.
+* Bring any valuable minerals you happen to collect to refinery base in the lower left.  You will be rewarded with a temporary enhancement to your rock buster.
 * If you get into a jam or if you have to abandon ship, use the Omega-13 to try again.
 * Good luck!
 

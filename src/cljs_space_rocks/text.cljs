@@ -93,6 +93,7 @@
    [:strong "Z"] " to use the \u03A9-13" [:br]
    [:strong "X"] " to abort the \u03A9-13" [:br]
    [:strong "P"] " to pause" [:br]
+   [:strong "Escape"] " for a new game" [:br]
    [:strong "Enter"] " to play!" [:br]])
 
 (defn desc-splash

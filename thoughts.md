@@ -93,19 +93,17 @@ So I've made very similar asteroids games in three different functional language
 
 ## To Do
 
-* Load saved game by default
+* See if transients can improve update performance
 
-* Low graphics mode to possibly improve performance on slow browsers/machines.
+* Low graphics mode to potentially improve performance on slow browsers/machines.
 
 * Code cleaning
 
 * Tests & CI
 
-* See if transients can improve update performance
-
 * Spec
 
-* Sound effects
+* Sound effects?
 
 * Helper boats?
 

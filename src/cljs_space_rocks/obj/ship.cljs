@@ -4,6 +4,7 @@
    [com.rpl.specter :as sp]
    [re-frame.core :as rf]
    [helper.geom :refer [ra->xy deg->rad]]
+   [helper.color :refer [hsl]]
    [helper.log :refer [clog]]
    [helper.fun :as fun :refer [assoc-fn assoc-fn-seq sjoin floor]]
    [helper.svg :as svg :refer [css-transform]]
@@ -44,14 +45,14 @@
 
 (def trim-colors
   {:med "#FF0000"
-   :min "#FABA00"
+   :min "#ED9800"
    :civ "#FA00FA"
    :sci "#009696"
    :pol "#0000FF"})
 
 (def emblems
   {:med (emb/fat-cross "#FF0000" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))
-   :min (emb/tee-bar "#FABA00" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))
+   :min (emb/tee-bar "#ED9800" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))
    :civ (emb/pipe-triangle "#FA00FA" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))
    :sci (emb/orbitals "#009696" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))
    :pol (emb/shield "#0000FF" (/ radius 4) 0 0 (emb/scale (/ radius 2.5)))})

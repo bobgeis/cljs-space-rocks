@@ -1,9 +1,11 @@
 
 This is a learning project, so take the "versions" with a grain of salt.
 
-## [0.2.1]
+## [0.2.1] 2018-08-22
 
 * Added powerups triggered by delivering loot to a base.  The refinery gives a rapid shot and the hospital gives a spread shot.
+* Some update code was modified to use transients.
+* Saved games are now loaded by default.
 
 
 ## [0.2.0] 2018-08-16

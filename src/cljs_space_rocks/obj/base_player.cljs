@@ -16,24 +16,31 @@
 
 (def amt->ticks
   {0 0
-   1 300
-   2 600
-   3 800
-   4 1000
-   5 1200
-   6 1300
+   1 200
+   2 400
+   3 600
+   4 800
+   5 1000
+   6 1200
    7 1400
-   8 1500
-   9 1600
-   10 1650
-   11 1700
-   12 1750
-   13 1800})
+   8 1600
+   9 1800
+   10 2000
+   11 2100
+   12 2200
+   13 2300
+   14 2400
+   15 2500
+   16 2600
+   17 2700
+   18 2800
+   19 2900
+   20 3000})
 
 (defn powerup-ticks
   "get the number of ticks the powerup should last, given the amount of loot delivered"
   [amt old-ticks]
-  (max old-ticks (get amt->ticks amt 1800)))
+  (max old-ticks (get amt->ticks amt 3000)))
 
 ;; query
 

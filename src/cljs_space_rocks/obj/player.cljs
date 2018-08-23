@@ -60,8 +60,8 @@
 
 (def bullet-type->hue
   {:blue 180
-   :red 300
-   :gold 60})
+   :red 285
+   :gold 45})
 
 ;; model
 

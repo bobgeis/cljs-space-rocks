@@ -97,9 +97,8 @@
 
 (def svg-emblem-miner
   "the miners emblem svg"
-  (emb/tee-bar "#FABA00" 0 0 0 (emb/scale 50)))
+  (emb/tee-bar "#ED9800" 0 0 0 (emb/scale 50)))
 
-; (def gem-r1 (* gem-r 1.5))
 (def gem-r1 gem-r)
 (def gem-n1 7)
 (def gem-n2 3)

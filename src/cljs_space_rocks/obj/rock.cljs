@@ -79,9 +79,9 @@
 
 (def mat->calf-nums
   "use type to get vecs of numbers for rand-nth"
-  {:M [1 1 2 2 2 2 3 3]
-   :C [1 1 1 2 2 2 2 3]
-   :S [1 1 1 2 2 2 2 2]
+  {:M [1 2 2 2 2 3 3 3]
+   :C [1 1 2 2 2 2 3 3]
+   :S [1 1 1 2 2 2 2 3]
    :ice [1 1 1 1 2 2 2 2]})
 
 (def mat->gem-chance

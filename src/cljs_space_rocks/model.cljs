@@ -67,16 +67,21 @@
             :ship-timer (ship-timer/init-timer)
            ;; effects are changes in the scene that affect the larger game state
             :effects {}}})
-  ([{hiscore :hiscore win-size :win-size save-exists :save-exists}]
-   (assoc (init-state)
-          :hiscore hiscore
-          :win-size win-size
-          :save-exists (if save-exists :true))))
+  ([{hiscore :hiscore win-size :win-size saved-game :saved-game save-exists :save-exists}]
+   (cond-> (init-state)
+     :always
+     (assoc :hiscore hiscore
+            :win-size win-size)
+     save-exists
+     (assoc :save-exists save-exists)
+     saved-game
+     (assoc :save-exists :true
+            :scene saved-game))))
 
 (defn init-app-state
   "initialize the app state"
-  [db ls-score size save-exists]
-  {:db (init-state {:hiscore ls-score :win-size size :save-exists save-exists})})
+  [db ls-score size saved-game]
+  {:db (init-state {:hiscore ls-score :win-size size :saved-game saved-game})})
 
 (defn sync-local-score
   "update the local-store's hiscore"
