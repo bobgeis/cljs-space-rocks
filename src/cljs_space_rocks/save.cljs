@@ -7,18 +7,20 @@
    [helper.rf :as hrf :refer [>evt <sub]]
    [cljs-space-rocks.omega :as omega]))
 
-
 ;; constants
 
 (def ls-key "cljs-space-rocks-scene")
 
+(def min-save-version 2)
+
 ;; functions
 
 (defn get-scene "get the save from the local store" []
-  (hb/get-local-storage ls-key nil))
+  (let [{scene :scene save-version :save-version} (hb/get-local-storage ls-key nil)]
+    (if (>= save-version min-save-version) scene nil)))
 
 (defn set-scene "set the save to the local store" [scene]
-  (hb/set-local-storage ls-key scene))
+  (hb/set-local-storage ls-key {:scene scene :save-version min-save-version}))
 
 (defn del-scene "delete the save" []
   (hb/del-local-storage ls-key))

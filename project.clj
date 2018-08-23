@@ -1,10 +1,8 @@
-(defproject cljs-space-rocks "0.2.0"
-  :description "Asteroids in clojure script with SVGs"
-  :url "https://github.com/bobgeis"
+(defproject cljs-space-rocks "0.2.1"
+  :description "Asteroids in ClojureScript with SVGs using reagent and re-frame"
+  :url "https://github.com/bobgeis/cljs-space-rocks"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-
-
 
   :min-lein-version "2.7.1"
 
@@ -95,7 +93,6 @@
 
              ;; to pipe all the output to the repl
              ;; :server-logfile false
-
 
 
   ;; Setting up nREPL for Figwheel and ClojureScript dev
